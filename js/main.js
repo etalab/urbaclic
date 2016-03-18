@@ -74,6 +74,8 @@ jQuery(document).ready(function ($) {
     urbaClic = function (obj, options) {
         var container = obj;
 
+        var cadastre_min_zoom = 17;
+
         var map = null;
 
         var layers = {
@@ -86,7 +88,7 @@ jQuery(document).ready(function ($) {
             showMap: true,
             showData: true,
             sharelink: false,
-            autocomplete_limit: 5
+            autocomplete_limit: 50
         };
 
         var ban_query = null;
@@ -195,7 +197,7 @@ jQuery(document).ready(function ($) {
                 if (cadastre_query2) cadastre_query2.abort();
 
 
-                if (map.getZoom() >= 18) {
+                if (map.getZoom() >= cadastre_min_zoom) {
 
                     var url = Cadastre_API + 'cadastre/geometrie';
                     var rect = L.rectangle(map.getBounds());
