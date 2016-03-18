@@ -1,0 +1,39 @@
+.urbaclic,
+.urbaclic * {
+  box-sizing: border-box;
+}
+.urbaclic .hidden {
+  display: none;
+}
+.urbaclic pre {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #333;
+  display: block;
+  font-size: 13px;
+  line-height: 1.42857;
+  margin: 0 0 10px;
+  padding: 9.5px;
+  word-break: break-all;
+  word-wrap: break-word;
+  overflow: auto;
+  font-family: monospace,monospace;
+  font-size: 1em;
+}
+.urbaclic .alert {
+  display: block;
+  padding: 8px;
+}
+.urbaclic .alert.alert-success {
+  background-color: #5cb85c;
+}
+.urbaclic .alert.alert-info {
+  background-color: #5bc0de;
+}
+.urbaclic .alert.alert-warning {
+  background-color: #f0ad4e;
+}
+.urbaclic .alert.alert-danger {
+  background-color: #d9534f;
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <pre></pre>
+</body>
+
+<script>window.jQuery || document.write("<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'><\/script>")</script>
+<script>
+    var geojson= {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.4262029528617859,
+          43.619341492190834
+        ]
+      }
+    }
+      ;
+
+    geojson=JSON.stringify(geojson);
+    var url='https://apicarto.sgmap.fr/cadastre/geometrie';
+    jQuery(document).ready(function ($) {
+        var pdata={geom:geojson};
+        $.get( url,pdata, function( data ) {
+            console.log(data);
+            $( "pre" ).html( data );
+        });
+    });
+</script>
+</html>
