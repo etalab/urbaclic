@@ -13,7 +13,7 @@ urbaClicUtils.urlify = function(text) {
     Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ];
     var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
-        var container = obj, map = _urbaclic.map = null, layers = {
+        var container = obj, map = null, layers = {
             ban: null,
             adresse: null,
             parcelle: null,
@@ -23,7 +23,7 @@ urbaClicUtils.urlify = function(text) {
             showData: !0,
             sharelink: !1,
             autocomplete_limit: 5
-        }, ban_query = null, cadastre_query = null, zoom_timeout = null;
+        }, ban_query = null, cadastre_query = null, cadastre_query2 = null, zoom_timeout = null;
         urbaClic_options = jQuery.extend(urbaClic_options, options);
         var autocomplete_params = {};
         for (var i in urbaClic_options) if (0 == i.search("autocomplete_")) {
@@ -60,7 +60,7 @@ urbaClicUtils.urlify = function(text) {
                         }).addTo(map);
                         zoom_timeout = setTimeout(function() {
                             map.fitBounds(layer.getBounds());
-                        }, 2500), layer.on("click", function(e) {
+                        }, 500), layer.on("click", function(e) {
                             var feature = e.layer.feature, type = feature.properties.type;
                             loadParcelle({
                                 feature: feature,
@@ -71,14 +71,33 @@ urbaClicUtils.urlify = function(text) {
                 });
             } else container.find("ul.urbaclic-autocomplete").html("").slideUp();
         };
-        if (urbaClic_options.showMap) {
-            jQuery(".urbaclic-map").length || jQuery('<div class="urbaclic-map"></div>').appendTo(container);
-            var map = L.map(jQuery(".urbaclic-map")[0], {
-                scrollWheelZoom: !1
-            }).setView([ 46.6795944656402, 2.197265625 ], 4);
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-        }
-        var loadParcelle = _urbaclic.loadParcelle = function(params) {
+        urbaClic_options.showMap && (jQuery(".urbaclic-map").length || jQuery('<div class="urbaclic-map"></div>').appendTo(container), 
+        map = L.map(jQuery(".urbaclic-map")[0], {
+            scrollWheelZoom: !1
+        }).setView([ 46.6795944656402, 2.197265625 ], 4), L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map), 
+        map.on("moveend", function() {
+            if (cadastre_query2 && cadastre_query2.abort(), map.getZoom() >= 18) {
+                var url = Cadastre_API + "cadastre/geometrie", rect = L.rectangle(map.getBounds()), qparams = {
+                    geom: JSON.stringify(rect.toGeoJSON())
+                };
+                cadastre_query2 = jQuery.getJSON(url, qparams, function(data) {
+                    if (data.features.length) {
+                        var layer = L.geoJson(data, {
+                            onEachFeature: function(feature, layer) {
+                                var html = default_template(feature);
+                                layer.bindPopup(html);
+                            },
+                            style: {
+                                className: "parcelles"
+                            }
+                        });
+                        layers.parcelles && map.removeLayer(layers.parcelles), layers.parcelles = null, 
+                        layer.addTo(map), layers.parcelles = layer;
+                    } else console.info("aucune parcelle trouvée");
+                });
+            } else layers.parcelles && (map.removeLayer(layers.parcelles), layers.parcelles = null);
+        }));
+        var loadParcelle = function(params) {
             zoom_timeout && clearTimeout(zoom_timeout);
             var adresse_json = {
                 type: "FeatureCollection",
@@ -120,7 +139,8 @@ urbaClicUtils.urlify = function(text) {
             container.find("ul.urbaclic-autocomplete").slideUp();
         }), container.on("click", "ul.urbaclic-autocomplete [data-feature]", function(e) {
             e.preventDefault(), loadParcelle(jQuery(this).data());
-        }), autocomplete(), _urbaclic;
+        }), autocomplete(), _urbaclic.map = map, _urbaclic.loadParcelle = loadParcelle, 
+        _urbaclic;
     };
     var BAN_API = "https://api-adresse.data.gouv.fr/", Cadastre_API = "https://apicarto.sgmap.fr/", checklibs = function() {
         var dependences = {
@@ -299,10 +319,11 @@ urbaClicUtils.urlify = function(text) {
             "string" != typeof Templates[tmpl] && (Templates[tmpl] = Templates[tmpl].join("\n")), 
             Templates[tmpl] = Handlebars.compile(Templates[tmpl]);
         }
-        container = jQuery("#urbaclic"), container.length && container.each(function() {
+        container = jQuery("#urbaclic"), container.length && (window.urbaClic_autoload = [], 
+        container.each(function() {
             var obj = jQuery(this);
-            urbaClic(obj, obj.data());
-        });
+            window.urbaClic_autoload.push(urbaClic(obj, obj.data()));
+        }));
     };
     checklibs();
 });

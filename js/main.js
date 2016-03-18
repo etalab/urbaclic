@@ -74,7 +74,7 @@ jQuery(document).ready(function ($) {
     urbaClic = function (obj, options) {
         var container = obj;
 
-        var map = _urbaclic.map = null;
+        var map = null;
 
         var layers = {
             ban: null,
@@ -91,6 +91,7 @@ jQuery(document).ready(function ($) {
 
         var ban_query = null;
         var cadastre_query = null;
+        var cadastre_query2 = null;
         var zoom_timeout = null;
 
         urbaClic_options = jQuery.extend(urbaClic_options, options);
@@ -161,7 +162,7 @@ jQuery(document).ready(function ($) {
                         }).addTo(map);
                         zoom_timeout = setTimeout(function () {
                             map.fitBounds(layer.getBounds());
-                        }, 2500);
+                        }, 500);
 
                         layer.on('click', function (e) {
                             var feature = e.layer.feature;
@@ -185,15 +186,56 @@ jQuery(document).ready(function ($) {
         if (urbaClic_options.showMap) {
             if (!jQuery('.urbaclic-map').length) jQuery('<div class="urbaclic-map"></div>').appendTo(container);
 
-            var map = L.map(jQuery('.urbaclic-map')[0], {
+            map = L.map(jQuery('.urbaclic-map')[0], {
                 scrollWheelZoom: false
             }).setView([46.6795944656402, 2.197265625], 4);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            map.on('moveend', function () {
+
+                if (cadastre_query2) cadastre_query2.abort();
+
+
+                if (map.getZoom() >= 18) {
+
+                    var url = Cadastre_API + 'cadastre/geometrie';
+                    var rect = L.rectangle(map.getBounds());
+                    var qparams = {
+                        geom: JSON.stringify(rect.toGeoJSON())
+                    };
+
+                    cadastre_query2 = jQuery.getJSON(url, qparams, function (data) {
+                        if (data.features.length) {
+                            var layer = L.geoJson(data, {
+                                onEachFeature: function (feature, layer) {
+                                    var html = default_template(feature);
+                                    layer.bindPopup(html);
+                                },
+                                style: {
+                                    'className': 'parcelles'
+                                }
+                            });
+                            if (layers.parcelles) map.removeLayer(layers.parcelles);
+                            layers.parcelles = null;
+                            layer.addTo(map);
+                            layers.parcelles = layer;
+                        } else {
+                            console.info('aucune parcelle trouvée');
+                        }
+
+                    });
+                } else {
+                    if (layers.parcelles) {
+                        map.removeLayer(layers.parcelles);
+                        layers.parcelles = null;
+                    }
+                }
+            });
         }
 
 
-        var loadParcelle = _urbaclic.loadParcelle = function (params) {
+        var loadParcelle = function (params) {
             if (zoom_timeout) clearTimeout(zoom_timeout);
 
             var adresse_json = {
@@ -213,7 +255,7 @@ jQuery(document).ready(function ($) {
             map.fitBounds(layer.getBounds());
             layers.adresse = layer;
 
-            if (layers.parcelle) map.removeLayer(layers.parcelle);
+            /*if (layers.parcelle) map.removeLayer(layers.parcelle);
             layers.parcelle = null;
             if (cadastre_query) cadastre_query.abort();
             var url = Cadastre_API + 'cadastre/geometrie';
@@ -240,7 +282,7 @@ jQuery(document).ready(function ($) {
                     console.info('aucune parcelle trouvée');
                 }
 
-            });
+            });*/
         }
 
         input.keydown(function (e) {
@@ -260,7 +302,8 @@ jQuery(document).ready(function ($) {
 
         autocomplete();
 
-
+        _urbaclic.map = map;
+        _urbaclic.loadParcelle = loadParcelle;
         return _urbaclic;
     };
 
@@ -587,10 +630,10 @@ jQuery(document).ready(function ($) {
         container = jQuery('#urbaclic');
         if (container.length) {
 
-
+            window.urbaClic_autoload = [];
             container.each(function () {
                 var obj = jQuery(this);
-                var uc = urbaClic(obj, obj.data());
+                window.urbaClic_autoload.push(urbaClic(obj, obj.data()));
             });
 
 
