@@ -174,7 +174,10 @@ jQuery(document).ready(function ($) {
                                 type: type
                             });
                         });
+
+                        layer.bringToFront();
                         layers.ban = layer;
+
 
                     } else {
                         ul.html('').fadeOut();
@@ -219,6 +222,7 @@ jQuery(document).ready(function ($) {
                             if (layers.parcelles) map.removeLayer(layers.parcelles);
                             layers.parcelles = null;
                             layer.addTo(map);
+                            layer.bringToBack();
                             layers.parcelles = layer;
                         } else {
                             console.info('aucune parcelle trouvée');

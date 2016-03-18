@@ -111,6 +111,12 @@
 }
 .urbaclic-map {
   min-height: 500px;
+  /* path.parcelle  {
+        //fill: none;
+        stroke-opacity: 0.8;
+        stroke-width: 1;
+        fill-opacity:0.5;
+    }*/
 }
 .urbaclic-map svg {
   min-height: auto !important;
@@ -119,14 +125,9 @@
   max-width: auto !important;
 }
 .urbaclic-map path.ban {
-  fill: none;
+  fill-opacity: 1;
   stroke-opacity: 1;
   stroke-width: 2;
-}
-.urbaclic-map path.parcelle {
-  stroke-opacity: 0.8;
-  stroke-width: 1;
-  fill-opacity: 0.5;
 }
 .urbaclic-map path.parcelles {
   stroke-opacity: 0.8;
