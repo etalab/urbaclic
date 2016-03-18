@@ -186,9 +186,7 @@ jQuery(document).ready(function ($) {
         if (urbaClic_options.showMap) {
             if (!jQuery('.urbaclic-map').length) jQuery('<div class="urbaclic-map"></div>').appendTo(container);
 
-            map = L.map(jQuery('.urbaclic-map')[0], {
-                scrollWheelZoom: false
-            }).setView([46.6795944656402, 2.197265625], 4);
+            map = L.map(jQuery('.urbaclic-map')[0], {}).setView([46.6795944656402, 2.197265625], 4);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
