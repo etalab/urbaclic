@@ -10,7 +10,7 @@ module.exports = function (grunt) {
                 livereload: true,
             },
             less: {
-                files: ['_less/*'],
+                files: ['less/*'],
                 tasks: ['less:production', 'less:development'],
                 options: {
                     livereload: false
@@ -20,7 +20,7 @@ module.exports = function (grunt) {
                 files: ['dist/*.css']
             },
             js: {
-                files: ['_js/*'],
+                files: ['js/*'],
                 tasks: ['uglify']
             }
         },
@@ -30,10 +30,10 @@ module.exports = function (grunt) {
         less: {
             development: {
                 options: {
-                    paths: ["_less"]
+                    paths: ["less"]
                 },
                 files: {
-                    "dist/urbaclic.css": "_less/main.less",
+                    "dist/urbaclic.css": "less/main.less",
                     sourceMap: true
                 }
             },
@@ -44,7 +44,7 @@ module.exports = function (grunt) {
                     sourceMap: true
                 },
                 files: {
-                    "dist/urbaclic.min.css": "_less/main.less"
+                    "dist/urbaclic.min.css": "less/main.less"
                 }
             }
         },
@@ -58,7 +58,7 @@ module.exports = function (grunt) {
                 },
                 files: {
                     'dist/urbaclic.min.js': [
-                        '_js/main.js'
+                        'js/main.js'
                     ]
                 }
             },
@@ -73,7 +73,7 @@ module.exports = function (grunt) {
                 },
                 files: {
                     'dist/urbaclic.js': [
-                        '_js/main.js'
+                        'js/main.js'
                     ]
                 }
             },
