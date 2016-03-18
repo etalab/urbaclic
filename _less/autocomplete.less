@@ -1,0 +1,79 @@
+label[for='urbaclic-search'] {
+    line-height: 15px;
+}
+
+#urbaclic-search {
+    width: 500px;
+
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+    color: #555;
+    display: block;
+    font-size: 14px;
+    height: 34px;
+    line-height: 1.42857;
+    padding: 6px 12px;
+    transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
+}
+
+.urbaclic-autocomplete {
+    display: inline-block;
+    position: relative;
+    z-index: 1000;
+}
+
+ul.urbaclic-autocomplete{
+    list-style: none;
+    background-color: rgba(255,255,255,0.7);
+    position: absolute;
+    top:50px;
+    left: 0;
+    padding: 0;
+    display: block;
+    width: 100%;
+    margin:0;
+    //box-shadow: 1px 4px 2px 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+
+    a {
+        display:block;
+        text-decoration: none;
+        color: @black;
+        text-shadow: 0 0 2px  #fff;
+        padding: 5px;
+
+        i {
+            background-color: @brand-info;
+            text-shadow: none;
+            border-radius: 8px;
+            color:@white;
+            float: right;
+            font-size: 0.7em;
+            font-style: normal;
+            min-width: 50px;
+            padding: 2px 6px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        &[data-type='housenumber'] {
+            i{
+                background-color: @brand-success;
+            }
+        }
+        &:hover,&:focus {
+            background-color: @white;
+        }
+        &:after{
+            content:'';
+            clear: both;
+            display:block;
+        }
+    }
+
+    mark {
+        background-color: transparent;
+        border-bottom: 1px solid @black;
+    }
+}

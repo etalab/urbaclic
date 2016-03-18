@@ -9,37 +9,127 @@ urbaClicUtils.urlify = function(text) {
     });
 }, jQuery(document).ready(function($) {
     var Templates = {};
-    Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}">{{mark properties.label ../query}}</i></a>', "{{/each}}" ], 
+    Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}">', "   {{marks properties.label ../query}}", "   &nbsp;<i>{{_ properties.type}}</i>", "</a></li>", "{{/each}}" ], 
     Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ];
-    var baseUrl = jQuery('script[src$="/urbaclic.js"]')[0].src.replace("/urbaclic.js", "/"), _urbaclic = {};
+    var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
-        var input = obj.find("#urbaclic-search"), ban_options = {
-            limit: 5
+        var container = obj, map = _urbaclic.map = null, layers = {
+            ban: null,
+            adresse: null,
+            parcelle: null,
+            parcelles: null
+        }, urbaClic_options = {
+            showMap: !0,
+            showData: !0,
+            sharelink: !1,
+            autocomplete_limit: 5
+        }, ban_query = null, cadastre_query = null, zoom_timeout = null;
+        urbaClic_options = jQuery.extend(urbaClic_options, options);
+        var autocomplete_params = {};
+        for (var i in urbaClic_options) if (0 == i.search("autocomplete_")) {
+            var k = i.substring("autocomplete_".length);
+            autocomplete_params[k] = urbaClic_options[i];
+        }
+        var input = container.find("#urbaclic-search"), ban_options = autocomplete_params, default_template = function(feature) {
+            var html = "";
+            return jQuery.each(feature.properties, function(k, v) {
+                html += "<tr><th>" + k + "</th><td>" + urbaClicUtils.urlify(v) + "</td></tr>";
+            }), html = '<table class="table table-hover table-bordered">' + html + "</table>";
+        }, circle_pointToLayer = function(feature, latlng) {
+            var geojsonMarkerOptions = {
+                radius: 3
+            };
+            return L.circleMarker(latlng, geojsonMarkerOptions);
         }, autocomplete = function() {
-            var t = input.val(), ul = obj.find("ul.urbaclic-autocomplete");
+            zoom_timeout && clearTimeout(zoom_timeout), layers.ban && map.removeLayer(layers.ban), 
+            layers.adresse && map.removeLayer(layers.adresse), layers.adresse = null, ban_query && ban_query.abort();
+            var t = input.val();
             if (t.length > 1) {
+                var ul = container.find("ul.urbaclic-autocomplete");
+                ul.length || (ul = jQuery('<ul class="urbaclic-autocomplete"></ul>').insertAfter(input).hide(), 
+                ul.css("top", input.outerHeight() - 2));
                 var url = BAN_API + "search/", params = ban_options;
-                params.q = t, obj.find("ul.urbaclic-autocomplete").length || jQuery('<ul class="urbaclic-autocomplete"></ul>').insertAfter(input).hide(), 
-                jQuery.getJSON(url, params, function(data) {
-                    data.features.length ? ul.html(Templates.autocomplete(data)).show() : ul.html("").hide();
+                params.q = t, ban_query = jQuery.getJSON(url, params, function(data) {
+                    if (ban_query = null, data.features.length) {
+                        ul.html(Templates.autocomplete(data)).slideDown();
+                        var layer = L.geoJson(data, {
+                            pointToLayer: circle_pointToLayer,
+                            style: {
+                                className: "ban"
+                            }
+                        }).addTo(map);
+                        zoom_timeout = setTimeout(function() {
+                            map.fitBounds(layer.getBounds());
+                        }, 2500), layer.on("click", function(e) {
+                            var feature = e.layer.feature, type = feature.properties.type;
+                            loadParcelle({
+                                feature: feature,
+                                type: type
+                            });
+                        }), layers.ban = layer;
+                    } else ul.html("").fadeOut();
                 });
-            } else ul.html("").hide();
-        }, loadParcelle = _urbaclic.loadParcelle = function(params) {
-            console.log(params);
+            } else container.find("ul.urbaclic-autocomplete").html("").slideUp();
+        };
+        if (urbaClic_options.showMap) {
+            jQuery(".urbaclic-map").length || jQuery('<div class="urbaclic-map"></div>').appendTo(container);
+            var map = L.map(jQuery(".urbaclic-map")[0], {
+                scrollWheelZoom: !1
+            }).setView([ 46.6795944656402, 2.197265625 ], 4);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+        }
+        var loadParcelle = _urbaclic.loadParcelle = function(params) {
+            zoom_timeout && clearTimeout(zoom_timeout);
+            var adresse_json = {
+                type: "FeatureCollection",
+                features: [ params.feature ]
+            }, layer = L.geoJson(adresse_json, {
+                onEachFeature: function(feature, layer) {
+                    var html = default_template(feature);
+                    layer.bindPopup(html);
+                },
+                style: {
+                    className: "adresse"
+                }
+            }).addTo(map);
+            map.fitBounds(layer.getBounds()), layers.adresse = layer, layers.parcelle && map.removeLayer(layers.parcelle), 
+            layers.parcelle = null, cadastre_query && cadastre_query.abort();
+            var url = Cadastre_API + "cadastre/geometrie", qparams = {
+                geom: JSON.stringify(params.feature)
+            };
+            input.val(params.feature.properties.label), cadastre_query = jQuery.getJSON(url, qparams, function(data) {
+                if (data.features.length) {
+                    var layer = L.geoJson(data, {
+                        onEachFeature: function(feature, layer) {
+                            var html = default_template(feature);
+                            layer.bindPopup(html);
+                        },
+                        style: {
+                            className: "parcelle"
+                        }
+                    }).addTo(map);
+                    map.fitBounds(layer.getBounds()), layers.parcelle = layer;
+                } else console.info("aucune parcelle trouvée");
+            });
         };
         return input.keydown(function(e) {
             setTimeout(autocomplete, 10);
-        }), obj.on("click", "ul.urbaclic-autocomplete [data-feature]", function(e) {
+        }).focusin(function() {
+            container.find("ul.urbaclic-autocomplete").slideDown();
+        }).focusout(function() {
+            container.find("ul.urbaclic-autocomplete").slideUp();
+        }), container.on("click", "ul.urbaclic-autocomplete [data-feature]", function(e) {
             e.preventDefault(), loadParcelle(jQuery(this).data());
-        }), _urbaclic;
+        }), autocomplete(), _urbaclic;
     };
-    var BAN_API = "https://api-adresse.data.gouv.fr/", checklibs = function() {
+    var BAN_API = "https://api-adresse.data.gouv.fr/", Cadastre_API = "https://apicarto.sgmap.fr/", checklibs = function() {
         var dependences = {
             Handlebars: "https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.2/handlebars.min.js",
             i18n: "https://cdnjs.cloudflare.com/ajax/libs/i18next/1.6.3/i18next-1.6.3.min.js",
             L: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"
         }, css = {
-            L: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css"
+            L: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css",
+            css: baseUrl + "urbaclic.css"
         }, ready = !0;
         for (var i in css) 0 == jQuery('link[href="' + css[i] + '"]').length && jQuery('<link type="text/css" href="' + css[i] + '" rel="stylesheet">').appendTo("head");
         for (var i in dependences) "undefined" == typeof window[i] && (0 == jQuery('script[src="' + dependences[i] + '"]').length && jQuery('<script src="' + dependences[i] + '"></script>').appendTo("body"), 
@@ -124,9 +214,25 @@ urbaClicUtils.urlify = function(text) {
                 return options.inverse(this);
             }
         }), Handlebars.registerHelper("mark", function(text, key) {
-            var match = text.match(new RegExp(key, "gi"));
-            for (var i in match) text = text.replace(new RegExp(match[i], "g"), "<mark>" + match[i] + "</mark>");
-            return new Handlebars.SafeString(text);
+            var match = text.match(new RegExp(key.trim(), "gi")), uniqueMatch = [];
+            jQuery.each(match, function(i, el) {
+                -1 === jQuery.inArray(el, uniqueMatch) && uniqueMatch.push(el);
+            });
+            for (var i in uniqueMatch) text = text.replace(new RegExp(uniqueMatch[i], "g"), "[** " + uniqueMatch[i] + " **]");
+            return text = text.replace(/\[\*\* /g, "<mark>").replace(/ \*\*\]/g, "</mark>"), 
+            new Handlebars.SafeString(text);
+        }), Handlebars.registerHelper("marks", function(text, key) {
+            var keys = key.trim().split(" ");
+            for (var i in keys) {
+                key = keys[i];
+                var match = text.match(new RegExp(key, "gi")), uniqueMatch = [];
+                jQuery.each(match, function(i, el) {
+                    -1 === jQuery.inArray(el, uniqueMatch) && uniqueMatch.push(el);
+                });
+                for (var i in uniqueMatch) text = text.replace(new RegExp(uniqueMatch[i], "g"), "[** " + uniqueMatch[i] + " **]");
+            }
+            return text = text.replace(/\[\*\* /g, "<mark>").replace(/ \*\*\]/g, "</mark>"), 
+            new Handlebars.SafeString(text);
         }), Handlebars.registerHelper("paginate", function(n, total, page_size) {
             var res = "", nPage = Math.ceil(total / page_size);
             if (1 == nPage) return "";

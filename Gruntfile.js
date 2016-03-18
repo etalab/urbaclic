@@ -33,7 +33,7 @@ module.exports = function (grunt) {
                     paths: ["_less"]
                 },
                 files: {
-                    "dist/udata.css": "_less/main.less",
+                    "dist/urbaclic.css": "_less/main.less",
                     sourceMap: true
                 }
             },
@@ -57,7 +57,7 @@ module.exports = function (grunt) {
                     mangle: false
                 },
                 files: {
-                    'dist/udata.min.js': [
+                    'dist/urbaclic.min.js': [
                         '_js/main.js'
                     ]
                 }

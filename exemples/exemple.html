@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>UrbClic exemple</title>
@@ -9,15 +9,18 @@
 
     <script>window.jQuery || document.write("<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'><\/script>")</script>
 
-    <script src="../dist/urbaclic.js"></script>
+    <script src="../_js/main.js"></script>
 
-    <div id="urbaclic" data-sharelink=true>
+    <div id="urbaclic" data-sharelink=true data-autocomplete_limit=15>
         <label for="urbaclic-search">Localisez votre projet</label>
-        <input type="text" id="urbaclic-search"
-        placeholder="adresse de la parcelle"
-        />
+        <div class="urbaclic-autocomplete">
 
-        <div class='urbaclic-map'></div>
+            <input type="text" id="urbaclic-search"
+            placeholder="adresse de la parcelle"
+            />
+        </div>
+
+        <div class='urbaclic-mappp'></div>
         <div class='urbaclic-data'></div>
     </div>
 
