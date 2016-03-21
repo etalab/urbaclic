@@ -1,4 +1,4 @@
-/*! 18-03-2016 */
+/*! 21-03-2016 */
 var urbaClic, urbaClicUtils = {};
 
 urbaClicUtils.urlify = function(text) {
@@ -9,7 +9,7 @@ urbaClicUtils.urlify = function(text) {
     });
 }, jQuery(document).ready(function($) {
     var Templates = {};
-    Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}">', "   {{marks properties.label ../query}}", "   &nbsp;<i>{{_ properties.type}}</i>", "</a></li>", "{{/each}}" ], 
+    Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">', "   {{marks properties.label ../query}}", "   &nbsp;<i>{{_ properties.type}}</i>", "</a></li>", "{{/each}}" ], 
     Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ];
     var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
@@ -23,7 +23,7 @@ urbaClicUtils.urlify = function(text) {
             showData: !0,
             sharelink: !1,
             autocomplete_limit: 50
-        }, ban_query = null, cadastre_query2 = null, zoom_timeout = null;
+        }, ban_query = null, cadastre_query2 = null, zoom_timeout = null, focusOff_timeout = null;
         urbaClic_options = jQuery.extend(urbaClic_options, options);
         var autocomplete_params = {};
         for (var i in urbaClic_options) if (0 == i.search("autocomplete_")) {
@@ -42,7 +42,8 @@ urbaClicUtils.urlify = function(text) {
             return L.circleMarker(latlng, geojsonMarkerOptions);
         }, autocomplete = function() {
             zoom_timeout && clearTimeout(zoom_timeout), layers.ban && map.removeLayer(layers.ban), 
-            layers.adresse && map.removeLayer(layers.adresse), layers.adresse = null, ban_query && ban_query.abort();
+            layers.adresse && map.removeLayer(layers.adresse), layers.adresse = null, ban_query && ban_query.abort(), 
+            input.prop("tabindex", 1e3);
             var t = input.val();
             if (t.length > 1) {
                 var ul = container.find("ul.urbaclic-autocomplete");
@@ -66,7 +67,11 @@ urbaClicUtils.urlify = function(text) {
                                 feature: feature,
                                 type: type
                             });
-                        }), layers.ban = layer;
+                        }), layer.bringToFront(), layers.ban = layer;
+                        var tbindex = 1e3;
+                        container.find("ul.urbaclic-autocomplete a").each(function() {
+                            tbindex++, jQuery(this).prop("tabindex", tbindex);
+                        });
                     } else ul.html("").fadeOut();
                 });
             } else container.find("ul.urbaclic-autocomplete").html("").slideUp();
@@ -90,13 +95,13 @@ urbaClicUtils.urlify = function(text) {
                             }
                         });
                         layers.parcelles && map.removeLayer(layers.parcelles), layers.parcelles = null, 
-                        layer.addTo(map), layers.parcelles = layer;
+                        layer.addTo(map), layer.bringToBack(), layers.parcelles = layer;
                     } else console.info("aucune parcelle trouvée");
                 });
             } else layers.parcelles && (map.removeLayer(layers.parcelles), layers.parcelles = null);
         }));
         var loadParcelle = function(params) {
-            zoom_timeout && clearTimeout(zoom_timeout);
+            focusOff(), zoom_timeout && clearTimeout(zoom_timeout);
             var adresse_json = {
                 type: "FeatureCollection",
                 features: [ params.feature ]
@@ -110,15 +115,23 @@ urbaClicUtils.urlify = function(text) {
                 }
             }).addTo(map);
             map.fitBounds(layer.getBounds()), layers.adresse = layer;
+        }, focusOff = function() {
+            container.find("ul.urbaclic-autocomplete").slideUp();
         };
         return input.keydown(function(e) {
             setTimeout(autocomplete, 10);
         }).focusin(function() {
-            container.find("ul.urbaclic-autocomplete").slideDown();
+            clearTimeout(focusOff_timeout), container.find("ul.urbaclic-autocomplete").slideDown();
         }).focusout(function() {
-            container.find("ul.urbaclic-autocomplete").slideUp();
+            clearTimeout(focusOff_timeout), focusOff_timeout = setTimeout(focusOff, 200);
         }), container.on("click", "ul.urbaclic-autocomplete [data-feature]", function(e) {
             e.preventDefault(), loadParcelle(jQuery(this).data());
+        }).on("mouseover", "ul.urbaclic-autocomplete", function(e) {
+            clearTimeout(focusOff_timeout);
+        }).on("focusin", "ul.urbaclic-autocomplete *", function(e) {
+            clearTimeout(focusOff_timeout);
+        }).on("focusout", "ul.urbaclic-autocomplete *", function(e) {
+            clearTimeout(focusOff_timeout), focusOff_timeout = setTimeout(focusOff, 200);
         }), autocomplete(), _urbaclic.map = map, _urbaclic.loadParcelle = loadParcelle, 
         _urbaclic;
     };

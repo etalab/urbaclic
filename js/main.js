@@ -24,7 +24,7 @@ jQuery(document).ready(function ($) {
 
     Templates.autocomplete = [
         '{{#each features}}',
-        '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}">',
+        '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">',
         '   {{marks properties.label ../query}}',
         '   &nbsp;<i>{{_ properties.type}}</i>',
         '</a></li>',
@@ -95,6 +95,7 @@ jQuery(document).ready(function ($) {
         var cadastre_query = null;
         var cadastre_query2 = null;
         var zoom_timeout = null;
+        var focusOff_timeout = null;
 
         urbaClic_options = jQuery.extend(urbaClic_options, options);
 
@@ -136,6 +137,7 @@ jQuery(document).ready(function ($) {
 
             layers.adresse = null;
             if (ban_query) ban_query.abort();
+            input.prop('tabindex', 1000);
             var t = input.val();
 
             if (t.length > 1) {
@@ -177,6 +179,12 @@ jQuery(document).ready(function ($) {
 
                         layer.bringToFront();
                         layers.ban = layer;
+
+                        var tbindex = 1000;
+                        container.find('ul.urbaclic-autocomplete a').each(function () {
+                            tbindex++;
+                            jQuery(this).prop('tabindex', tbindex);
+                        })
 
 
                     } else {
@@ -240,6 +248,7 @@ jQuery(document).ready(function ($) {
 
 
         var loadParcelle = function (params) {
+            focusOff();
             if (zoom_timeout) clearTimeout(zoom_timeout);
 
             var adresse_json = {
@@ -287,21 +296,35 @@ jQuery(document).ready(function ($) {
                 }
 
             });*/
+        };
+
+
+        var focusOff = function () {
+            container.find('ul.urbaclic-autocomplete').slideUp();
         }
 
         input.keydown(function (e) {
             setTimeout(autocomplete, 10);
         })
             .focusin(function () {
+                clearTimeout(focusOff_timeout);
                 container.find('ul.urbaclic-autocomplete').slideDown();
             })
             .focusout(function () {
-                container.find('ul.urbaclic-autocomplete').slideUp();
+                clearTimeout(focusOff_timeout);
+                focusOff_timeout = setTimeout(focusOff, 200);
             });
 
         container.on('click', 'ul.urbaclic-autocomplete [data-feature]', function (e) {
             e.preventDefault();
             loadParcelle(jQuery(this).data());
+        }).on('mouseover', 'ul.urbaclic-autocomplete', function (e) {
+            clearTimeout(focusOff_timeout);
+        }).on('focusin', 'ul.urbaclic-autocomplete *', function (e) {
+            clearTimeout(focusOff_timeout);
+        }).on('focusout', 'ul.urbaclic-autocomplete *', function (e) {
+            clearTimeout(focusOff_timeout);
+            focusOff_timeout = setTimeout(focusOff, 200);
         })
 
         autocomplete();
