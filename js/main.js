@@ -12,6 +12,81 @@ urbaClicUtils.urlify = function (text) {
 
 }
 
+urbaClicUtils.baseLayers = {
+    "OSM-Fr": {
+        "title": "OSM-Fr",
+        "url": "//tilecache.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
+    },
+    "Positron": {
+        "title": "Positron",
+        "url": "//cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
+    },
+    "Outdoors_OSM": {
+        "title": "Outdoors (OSM)",
+        "url": "//{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png"
+    },
+    "OSM_Roads": {
+        "title": "OSM Roads",
+        "url": "//korona.geog.uni-heidelberg.de/tiles/roads/x={x}&y={y}&z={z}"
+    },
+    "Dark_Matter": {
+        "title": "Dark Matter",
+        "url": "//cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
+    },
+    "OpenStreetMap": {
+        "title": "OpenStreetMap",
+        "url": "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    },
+    "Toner": {
+        "title": "Toner",
+        "url": "//{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png"
+    },
+    "Landscape": {
+        "title": "Landscape",
+        "url": "//{s}.tile3.opencyclemap.org/landscape/{z}/{x}/{y}.png"
+    },
+    "Transport": {
+        "title": "Transport",
+        "url": "//{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png"
+    },
+    "MapQuest_Open": {
+        "title": "MapQuest Open",
+        "url": "//otile1.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png"
+    },
+    "HOTOSM_style": {
+        "title": "HOTOSM style",
+        "url": "//tilecache.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+    },
+    "OpenCycleMap": {
+        "title": "OpenCycleMap",
+        "url": "//{s}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png"
+    },
+    "Watercolor": {
+        "title": "Watercolor",
+        "url": "//{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png"
+    },
+    "hikebikemap": {
+        "title": "hikebikemap",
+        "url": "//toolserver.org/tiles/hikebike/{z}/{x}/{y}.png"
+    },
+    "OSM-monochrome": {
+        "title": "OSM-monochrome",
+        "url": "//www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png"
+    },
+    "Hydda": {
+        "title": "Hydda",
+        "url": "//{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png"
+    },
+    "OpenTopoMap": {
+        "title": "OpenTopoMap",
+        "url": "//{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+    },
+    "OpenRiverboatMap": {
+        "title": "OpenRiverboatMap",
+        "url": "//tilecache.openstreetmap.fr/openriverboatmap/{z}/{x}/{y}.png"
+    }
+};
+
 
 jQuery(document).ready(function ($) {
 
@@ -81,14 +156,19 @@ jQuery(document).ready(function ($) {
         var layers = {
             ban: null,
             adresse: null,
-            parcelle: null,
+            //parcelle: null,
             parcelles: null
         }
+
+        var backgroundLayers = {};
+
         var urbaClic_options = {
             showMap: true,
             showData: true,
             sharelink: false,
-            autocomplete_limit: 50
+            autocomplete_limit: 50,
+            leaflet_map_options: {},
+            background_layers: ['OpenStreetMap', 'MapQuest_Open', 'OpenTopoMap']
         };
 
         var ban_query = null;
@@ -128,6 +208,22 @@ jQuery(document).ready(function ($) {
 
             return L.circleMarker(latlng, geojsonMarkerOptions);
         };
+
+        var updateLayerController = function () {
+            var loadedLayers = [];
+            for (var i in layers) {
+                if (layers[i] != null) loadedLayers[i] = layers[i];
+            }
+            map.layerController.removeFrom(map);
+            map.layerController = L.control.layers(backgroundLayers, loadedLayers).addTo(map);
+        }
+
+        _urbaclic.addBackground = function (title, layer, show) {
+            backgroundLayers[title] = layer;
+            if (show === true) layer.addTo(map);
+            updateLayerController();
+
+        }
 
         var autocomplete = function () {
             if (zoom_timeout) clearTimeout(zoom_timeout);
@@ -179,6 +275,7 @@ jQuery(document).ready(function ($) {
 
                         layer.bringToFront();
                         layers.ban = layer;
+                        updateLayerController();
 
                         var tbindex = 1000;
                         container.find('ul.urbaclic-autocomplete a').each(function () {
@@ -199,7 +296,29 @@ jQuery(document).ready(function ($) {
         if (urbaClic_options.showMap) {
             if (!jQuery('.urbaclic-map').length) jQuery('<div class="urbaclic-map"></div>').appendTo(container);
 
-            map = L.map(jQuery('.urbaclic-map')[0], {}).setView([46.6795944656402, 2.197265625], 4);
+            map = L.map(jQuery('.urbaclic-map')[0], urbaClic_options.leaflet_map_options).setView([46.6795944656402, 2.197265625], 4);
+            map.attributionControl.setPrefix('');
+            map.layerController = L.control.layers([], []).addTo(map);
+
+            for (var i in urbaClic_options.background_layers) {
+                var bl = urbaClic_options.background_layers[i];
+
+                if (typeof bl == 'string') {
+                    if (urbaClicUtils.baseLayers[bl] != undefined) {
+                        bl = urbaClicUtils.baseLayers[bl];
+                    } else {
+                        try {
+                            bl = eval(bl);
+                        } catch (err) {
+                            console.log(err.message);
+                        }
+                    }
+                }
+                var l = L.tileLayer(bl.url);
+                var t = bl.title;
+                _urbaclic.addBackground(t, l, i == 0);
+            }
+
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
@@ -232,6 +351,7 @@ jQuery(document).ready(function ($) {
                             layer.addTo(map);
                             layer.bringToBack();
                             layers.parcelles = layer;
+                            updateLayerController();
                         } else {
                             console.info('aucune parcelle trouvée');
                         }
@@ -241,6 +361,7 @@ jQuery(document).ready(function ($) {
                     if (layers.parcelles) {
                         map.removeLayer(layers.parcelles);
                         layers.parcelles = null;
+                        updateLayerController();
                     }
                 }
             });
@@ -267,6 +388,7 @@ jQuery(document).ready(function ($) {
             }).addTo(map);
             map.fitBounds(layer.getBounds());
             layers.adresse = layer;
+            updateLayerController();
 
             /*if (layers.parcelle) map.removeLayer(layers.parcelle);
             layers.parcelle = null;
