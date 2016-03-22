@@ -109,6 +109,19 @@
   background-color: transparent;
   border-bottom: 1px solid #111;
 }
+#urbaclic:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+#urbaclic .urbaclic-map {
+  float: left;
+  width: 75%;
+}
+#urbaclic .urbaclic-data {
+  float: left;
+  width: 25%;
+}
 .urbaclic-map {
   min-height: 500px;
   /* path.parcelle  {
@@ -136,4 +149,20 @@
 }
 .urbaclic-map path.parcelles:hover {
   fill-opacity: 0.85;
+}
+.urbaclic-map g.active .parcelles {
+  fill-opacity: 0.5;
+}
+.urbaclic-data p.latlng {
+  text-align: center;
+  font-size: 0.8em;
+}
+.urbaclic-data div h4 {
+  padding: 5px;
+  text-transform: uppercase;
+  margin: 8px 0 0 0;
+}
+.urbaclic-data ul {
+  list-style: none;
+  margin: 0;
 }

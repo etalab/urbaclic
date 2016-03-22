@@ -137,6 +137,49 @@ jQuery(document).ready(function ($) {
     ];
 
 
+    Templates.parcelleData = [
+        '<p class="latlng">{{latlng.lat}}, {{latlng.lng}}</p>',
+
+        '{{#ifCond cadastre "!=" undefined}}',
+        '<div class="cadastre">',
+        '<h4>cadastre</h4>',
+        '<ul>',
+        '<li class="parcelle_id">ID: {{parcelle_id}}</li>',
+        '<li class="code_dep">code_dep: {{cadastre.code_dep}}</li>',
+        '<li class="code_com">code_com: {{cadastre.code_com}}</li>',
+        '<li class="nom_com">nom_com: {{cadastre.nom_com}}</li>',
+        '<li class="code_arr">code_arr: {{cadastre.code_arr}}</li>',
+        '<li class="com_abs">com_abs: {{cadastre.com_abs}}</li>',
+        '<li class="feuille">feuille: {{cadastre.feuille}}</li>',
+        '<li class="section">section: {{cadastre.section}}</li>',
+        '<li class="numero">numero: {{cadastre.numero}}</li>',
+        '<li class="surface_parcelle">surface: {{round cadastre.surface_parcelle}}m²</li>',
+        '</ul>',
+        '</div>',
+        '{{/ifCond}}',
+
+
+        '{{#ifCond adresse "!=" null}}',
+        '<div class="adresse">',
+        '<h4>adresse</h4>',
+        '<ul>',
+        '<li>{{adresse.name}} {{adresse.postcode}} {{adresse.city}}</li>',
+        '</ul>',
+        '</div>',
+        '{{/ifCond}}',
+
+        '<div class="servitudes">',
+        '<h4>servitudes</h4>',
+        '<ul>',
+        '{{#each servitudes}}',
+        '<li>{{type}} {{nom}} id:{{id}}</li>',
+        '{{/each}}',
+        '</ul>',
+        '</div>'
+
+    ];
+
+
 
 
 
@@ -166,6 +209,9 @@ jQuery(document).ready(function ($) {
             showMap: true,
             showData: true,
             sharelink: false,
+            getadresse: false,
+            getservitude: true,
+            sharelink: false,
             autocomplete_limit: 50,
             leaflet_map_options: {},
             background_layers: ['OpenStreetMap', 'MapQuest_Open', 'OpenTopoMap']
@@ -176,6 +222,10 @@ jQuery(document).ready(function ($) {
         var cadastre_query2 = null;
         var zoom_timeout = null;
         var focusOff_timeout = null;
+
+        var current_parcelle = {
+            loadings: []
+        };
 
         urbaClic_options = jQuery.extend(urbaClic_options, options);
 
@@ -224,6 +274,7 @@ jQuery(document).ready(function ($) {
             updateLayerController();
 
         }
+
 
         var autocomplete = function () {
             if (zoom_timeout) clearTimeout(zoom_timeout);
@@ -339,8 +390,16 @@ jQuery(document).ready(function ($) {
                         if (data.features.length) {
                             var layer = L.geoJson(data, {
                                 onEachFeature: function (feature, layer) {
-                                    var html = default_template(feature);
-                                    layer.bindPopup(html);
+                                    if (urbaClic_options.showMap) {
+                                        layer.on('click', function (e) {
+                                            //e.preventDefault();
+                                            showData(feature, layer, e);
+                                        });
+
+                                    } else {
+                                        var html = default_template(feature);
+                                        layer.bindPopup(html);
+                                    }
                                 },
                                 style: {
                                     'className': 'parcelles'
@@ -368,16 +427,9 @@ jQuery(document).ready(function ($) {
         }
 
 
-        var loadParcelle = function (params) {
-            focusOff();
-            if (zoom_timeout) clearTimeout(zoom_timeout);
-
-            var adresse_json = {
-                type: 'FeatureCollection',
-                features: [params.feature]
-            };
-
-            var layer = L.geoJson(adresse_json, {
+        var addAdressLayer = function (data) {
+            if (layers.adresse) map.removeLayer(layers.adresse);
+            var layer = L.geoJson(data, {
                 onEachFeature: function (feature, layer) {
                     var html = default_template(feature);
                     layer.bindPopup(html);
@@ -386,9 +438,28 @@ jQuery(document).ready(function ($) {
                     'className': 'adresse'
                 }
             }).addTo(map);
-            map.fitBounds(layer.getBounds());
             layers.adresse = layer;
             updateLayerController();
+            return layer;
+        };
+
+
+
+        var loadParcelle = function (params) {
+
+
+            focusOff();
+            if (zoom_timeout) clearTimeout(zoom_timeout);
+
+            var adresse_json = {
+                type: 'FeatureCollection',
+                features: [params.feature]
+            };
+
+            var layer = addAdressLayer(adresse_json);
+
+            map.fitBounds(layer.getBounds());
+
 
             /*if (layers.parcelle) map.removeLayer(layers.parcelle);
             layers.parcelle = null;
@@ -419,6 +490,81 @@ jQuery(document).ready(function ($) {
 
             });*/
         };
+
+        var showData = function (feature, layer, evt) {
+            var parcelleId = [
+                feature.properties.code_dep,
+                feature.properties.code_com
+            ];
+
+            if (feature.properties.code_arr != "000") {
+                parcelleId.push(feature.properties.code_arr);
+            } else {
+                parcelleId.push(feature.properties.com_abs);
+            }
+
+            for (var i in layer._layers) {
+                layer._layers[i]._container.setAttribute('class', 'active');
+            }
+
+
+            parcelleId.push(feature.properties.section);
+            parcelleId.push(feature.properties.numero);
+
+            parcelleId = parcelleId.join('');
+
+            if (urbaClic_options.showData) {
+                if (!jQuery('.urbaclic-data').length) jQuery('<div class="urbaclic-data"></div>').appendTo(container);
+            }
+            current_parcelle.data = {
+                latlng: evt.latlng,
+                parcelle_id: parcelleId,
+                cadastre: feature.properties,
+                adresse: null,
+                servitudes: []
+            };
+
+            for (var i in current_parcelle.loadings) {
+                current_parcelle.loadings[i].abort();
+            }
+
+            //console.log(current_parcelle.data);
+            jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
+
+            //load adresse
+            if (urbaClic_options.getadresse) {
+                var url = BAN_API + 'reverse/';
+                var params = {
+                    lon: current_parcelle.data.latlng.lng,
+                    lat: current_parcelle.data.latlng.lat
+                };
+
+                current_parcelle.loadings.ban_query = jQuery.getJSON(url, params, function (data) {
+                    addAdressLayer(data);
+                    if (data.features[0] != undefined) {
+                        current_parcelle.data.adresse = data.features[0].properties;
+                        jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
+                    }
+                });
+            }
+
+            //load_servitudes
+            if (urbaClic_options.getservitude) {
+                //****************************************************************************************
+                var res_exemple = [{
+                    "type": "AC1",
+                    "nom": "Église Saint-Étienne",
+                    "surfaceIntersection": 1234,
+                    "id": 12345
+                }];
+                //****************************************************************************************
+                current_parcelle.data.servitudes = res_exemple;
+                jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
+            }
+
+
+
+        }
 
 
         var focusOff = function () {
@@ -657,6 +803,10 @@ jQuery(document).ready(function ($) {
 
         Handlebars.registerHelper('uppercase', function (passedString) {
             return passedString.toUpperCase();
+        });
+
+        Handlebars.registerHelper('round', function (passedString) {
+            return Math.round(parseFloat(passedString));
         });
 
         Handlebars.registerHelper('truncate', function (str, len) {

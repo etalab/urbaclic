@@ -1,4 +1,4 @@
-/*! 21-03-2016 */
+/*! 22-03-2016 */
 var urbaClic, urbaClicUtils = {};
 
 urbaClicUtils.urlify = function(text) {
@@ -83,7 +83,8 @@ urbaClicUtils.urlify = function(text) {
 }, jQuery(document).ready(function($) {
     var Templates = {}, sortDesc = !1;
     Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">', "   {{marks properties.label ../query}}", "   &nbsp;<i>{{_ properties.type}}</i>", "</a></li>", "{{/each}}" ], 
-    Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ];
+    Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ], 
+    Templates.parcelleData = [ '<p class="latlng">{{latlng.lat}}, {{latlng.lng}}</p>', '{{#ifCond cadastre "!=" undefined}}', '<div class="cadastre">', "<h4>cadastre</h4>", "<ul>", '<li class="parcelle_id">ID: {{parcelle_id}}</li>', '<li class="code_dep">code_dep: {{cadastre.code_dep}}</li>', '<li class="code_com">code_com: {{cadastre.code_com}}</li>', '<li class="nom_com">nom_com: {{cadastre.nom_com}}</li>', '<li class="code_arr">code_arr: {{cadastre.code_arr}}</li>', '<li class="com_abs">com_abs: {{cadastre.com_abs}}</li>', '<li class="feuille">feuille: {{cadastre.feuille}}</li>', '<li class="section">section: {{cadastre.section}}</li>', '<li class="numero">numero: {{cadastre.numero}}</li>', '<li class="surface_parcelle">surface: {{round cadastre.surface_parcelle}}m²</li>', "</ul>", "</div>", "{{/ifCond}}", '{{#ifCond adresse "!=" null}}', '<div class="adresse">', "<h4>adresse</h4>", "<ul>", "<li>{{adresse.name}} {{adresse.postcode}} {{adresse.city}}</li>", "</ul>", "</div>", "{{/ifCond}}", '<div class="servitudes">', "<h4>servitudes</h4>", "<ul>", "{{#each servitudes}}", "<li>{{type}} {{nom}} id:{{id}}</li>", "{{/each}}", "</ul>", "</div>" ];
     var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
         var container = obj, cadastre_min_zoom = 17, map = null, layers = {
@@ -94,10 +95,15 @@ urbaClicUtils.urlify = function(text) {
             showMap: !0,
             showData: !0,
             sharelink: !1,
+            getadresse: !1,
+            getservitude: !0,
+            sharelink: !1,
             autocomplete_limit: 50,
             leaflet_map_options: {},
             background_layers: [ "OpenStreetMap", "MapQuest_Open", "OpenTopoMap" ]
-        }, ban_query = null, cadastre_query = null, cadastre_query2 = null, zoom_timeout = null, focusOff_timeout = null;
+        }, ban_query = null, cadastre_query = null, cadastre_query2 = null, zoom_timeout = null, focusOff_timeout = null, current_parcelle = {
+            loadings: []
+        };
         urbaClic_options = jQuery.extend(urbaClic_options, options);
         var autocomplete_params = {};
         for (var i in urbaClic_options) if (0 == i.search("autocomplete_")) {
@@ -181,8 +187,12 @@ urbaClicUtils.urlify = function(text) {
                         if (data.features.length) {
                             var layer = L.geoJson(data, {
                                 onEachFeature: function(feature, layer) {
-                                    var html = default_template(feature);
-                                    layer.bindPopup(html);
+                                    if (urbaClic_options.showMap) layer.on("click", function(e) {
+                                        showData(feature, layer, e);
+                                    }); else {
+                                        var html = default_template(feature);
+                                        layer.bindPopup(html);
+                                    }
                                 },
                                 style: {
                                     className: "parcelles"
@@ -196,12 +206,9 @@ urbaClicUtils.urlify = function(text) {
                 updateLayerController());
             });
         }
-        var loadParcelle = function(params) {
-            focusOff(), zoom_timeout && clearTimeout(zoom_timeout);
-            var adresse_json = {
-                type: "FeatureCollection",
-                features: [ params.feature ]
-            }, layer = L.geoJson(adresse_json, {
+        var addAdressLayer = function(data) {
+            layers.adresse && map.removeLayer(layers.adresse);
+            var layer = L.geoJson(data, {
                 onEachFeature: function(feature, layer) {
                     var html = default_template(feature);
                     layer.bindPopup(html);
@@ -210,7 +217,48 @@ urbaClicUtils.urlify = function(text) {
                     className: "adresse"
                 }
             }).addTo(map);
-            map.fitBounds(layer.getBounds()), layers.adresse = layer, updateLayerController();
+            return layers.adresse = layer, updateLayerController(), layer;
+        }, loadParcelle = function(params) {
+            focusOff(), zoom_timeout && clearTimeout(zoom_timeout);
+            var adresse_json = {
+                type: "FeatureCollection",
+                features: [ params.feature ]
+            }, layer = addAdressLayer(adresse_json);
+            map.fitBounds(layer.getBounds());
+        }, showData = function(feature, layer, evt) {
+            var parcelleId = [ feature.properties.code_dep, feature.properties.code_com ];
+            "000" != feature.properties.code_arr ? parcelleId.push(feature.properties.code_arr) : parcelleId.push(feature.properties.com_abs);
+            for (var i in layer._layers) layer._layers[i]._container.setAttribute("class", "active");
+            parcelleId.push(feature.properties.section), parcelleId.push(feature.properties.numero), 
+            parcelleId = parcelleId.join(""), urbaClic_options.showData && (jQuery(".urbaclic-data").length || jQuery('<div class="urbaclic-data"></div>').appendTo(container)), 
+            current_parcelle.data = {
+                latlng: evt.latlng,
+                parcelle_id: parcelleId,
+                cadastre: feature.properties,
+                adresse: null,
+                servitudes: []
+            };
+            for (var i in current_parcelle.loadings) current_parcelle.loadings[i].abort();
+            if (jQuery(".urbaclic-data").html(Templates.parcelleData(current_parcelle.data)), 
+            urbaClic_options.getadresse) {
+                var url = BAN_API + "reverse/", params = {
+                    lon: current_parcelle.data.latlng.lng,
+                    lat: current_parcelle.data.latlng.lat
+                };
+                current_parcelle.loadings.ban_query = jQuery.getJSON(url, params, function(data) {
+                    addAdressLayer(data), void 0 != data.features[0] && (current_parcelle.data.adresse = data.features[0].properties, 
+                    jQuery(".urbaclic-data").html(Templates.parcelleData(current_parcelle.data)));
+                });
+            }
+            if (urbaClic_options.getservitude) {
+                var res_exemple = [ {
+                    type: "AC1",
+                    nom: "Église Saint-Étienne",
+                    surfaceIntersection: 1234,
+                    id: 12345
+                } ];
+                current_parcelle.data.servitudes = res_exemple, jQuery(".urbaclic-data").html(Templates.parcelleData(current_parcelle.data));
+            }
         }, focusOff = function() {
             container.find("ul.urbaclic-autocomplete").slideUp();
         };
@@ -360,6 +408,8 @@ urbaClicUtils.urlify = function(text) {
             return passedString;
         }), Handlebars.registerHelper("uppercase", function(passedString) {
             return passedString.toUpperCase();
+        }), Handlebars.registerHelper("round", function(passedString) {
+            return Math.round(parseFloat(passedString));
         }), Handlebars.registerHelper("truncate", function(str, len) {
             if (str && str.length > len && str.length > 0) {
                 var new_str = str + " ";
