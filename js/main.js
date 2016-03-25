@@ -168,14 +168,19 @@ jQuery(document).ready(function ($) {
         '</div>',
         '{{/ifCond}}',
 
+        '{{#ifCond servitudes "!=" null}}',
         '<div class="servitudes">',
         '<h4>servitudes</h4>',
         '<ul>',
+        '{{#ifCount servitudes "==" 0}}',
+        '<li>aucune</li>',
+        '{{/ifCount}}',
         '{{#each servitudes}}',
         '<li>{{type}} {{nom}} id:{{id}}</li>',
         '{{/each}}',
         '</ul>',
-        '</div>'
+        '</div>',
+        '{{/ifCond}}'
 
     ];
 
@@ -209,7 +214,7 @@ jQuery(document).ready(function ($) {
             showMap: true,
             showData: true,
             sharelink: false,
-            getadresse: false,
+            getadresse: true,
             getservitude: true,
             sharelink: false,
             autocomplete_limit: 50,
@@ -521,7 +526,7 @@ jQuery(document).ready(function ($) {
                 parcelle_id: parcelleId,
                 cadastre: feature.properties,
                 adresse: null,
-                servitudes: []
+                servitudes: null
             };
 
             for (var i in current_parcelle.loadings) {
@@ -551,15 +556,31 @@ jQuery(document).ready(function ($) {
             //load_servitudes
             if (urbaClic_options.getservitude) {
                 //****************************************************************************************
-                var res_exemple = [{
-                    "type": "AC1",
-                    "nom": "Église Saint-Étienne",
-                    "surfaceIntersection": 1234,
-                    "id": 12345
-                }];
+
+                var geom = layer.toGeoJSON();
+                geom = geom.geometry;
+                var url = URBA_API + 'servitudes';
+
+                var params = {
+                    geom: geom
+                };
+
+
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: JSON.stringify(params),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        current_parcelle.data.servitudes = data;
+                        jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
+                    }
+                });
+
+
                 //****************************************************************************************
-                current_parcelle.data.servitudes = res_exemple;
-                jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
+
             }
 
 
@@ -611,6 +632,7 @@ jQuery(document).ready(function ($) {
 
 
     var BAN_API = "https://api-adresse.data.gouv.fr/";
+    var URBA_API = "https://urbanisme.api.gouv.fr/";
     var Cadastre_API = "https://apicarto.sgmap.fr/";
 
 

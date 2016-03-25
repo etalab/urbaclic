@@ -1,4 +1,4 @@
-/*! 22-03-2016 */
+/*! 25-03-2016 */
 var urbaClic, urbaClicUtils = {};
 
 urbaClicUtils.urlify = function(text) {
@@ -84,7 +84,7 @@ urbaClicUtils.urlify = function(text) {
     var Templates = {}, sortDesc = !1;
     Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">', "   {{marks properties.label ../query}}", "   &nbsp;<i>{{_ properties.type}}</i>", "</a></li>", "{{/each}}" ], 
     Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ], 
-    Templates.parcelleData = [ '<p class="latlng">{{latlng.lat}}, {{latlng.lng}}</p>', '{{#ifCond cadastre "!=" undefined}}', '<div class="cadastre">', "<h4>cadastre</h4>", "<ul>", '<li class="parcelle_id">ID: {{parcelle_id}}</li>', '<li class="code_dep">code_dep: {{cadastre.code_dep}}</li>', '<li class="code_com">code_com: {{cadastre.code_com}}</li>', '<li class="nom_com">nom_com: {{cadastre.nom_com}}</li>', '<li class="code_arr">code_arr: {{cadastre.code_arr}}</li>', '<li class="com_abs">com_abs: {{cadastre.com_abs}}</li>', '<li class="feuille">feuille: {{cadastre.feuille}}</li>', '<li class="section">section: {{cadastre.section}}</li>', '<li class="numero">numero: {{cadastre.numero}}</li>', '<li class="surface_parcelle">surface: {{round cadastre.surface_parcelle}}m²</li>', "</ul>", "</div>", "{{/ifCond}}", '{{#ifCond adresse "!=" null}}', '<div class="adresse">', "<h4>adresse</h4>", "<ul>", "<li>{{adresse.name}} {{adresse.postcode}} {{adresse.city}}</li>", "</ul>", "</div>", "{{/ifCond}}", '<div class="servitudes">', "<h4>servitudes</h4>", "<ul>", "{{#each servitudes}}", "<li>{{type}} {{nom}} id:{{id}}</li>", "{{/each}}", "</ul>", "</div>" ];
+    Templates.parcelleData = [ '<p class="latlng">{{latlng.lat}}, {{latlng.lng}}</p>', '{{#ifCond cadastre "!=" undefined}}', '<div class="cadastre">', "<h4>cadastre</h4>", "<ul>", '<li class="parcelle_id">ID: {{parcelle_id}}</li>', '<li class="code_dep">code_dep: {{cadastre.code_dep}}</li>', '<li class="code_com">code_com: {{cadastre.code_com}}</li>', '<li class="nom_com">nom_com: {{cadastre.nom_com}}</li>', '<li class="code_arr">code_arr: {{cadastre.code_arr}}</li>', '<li class="com_abs">com_abs: {{cadastre.com_abs}}</li>', '<li class="feuille">feuille: {{cadastre.feuille}}</li>', '<li class="section">section: {{cadastre.section}}</li>', '<li class="numero">numero: {{cadastre.numero}}</li>', '<li class="surface_parcelle">surface: {{round cadastre.surface_parcelle}}m²</li>', "</ul>", "</div>", "{{/ifCond}}", '{{#ifCond adresse "!=" null}}', '<div class="adresse">', "<h4>adresse</h4>", "<ul>", "<li>{{adresse.name}} {{adresse.postcode}} {{adresse.city}}</li>", "</ul>", "</div>", "{{/ifCond}}", '{{#ifCond servitudes "!=" null}}', '<div class="servitudes">', "<h4>servitudes</h4>", "<ul>", '{{#ifCount servitudes "==" 0}}', "<li>aucune</li>", "{{/ifCount}}", "{{#each servitudes}}", "<li>{{type}} {{nom}} id:{{id}}</li>", "{{/each}}", "</ul>", "</div>", "{{/ifCond}}" ];
     var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
         var container = obj, cadastre_min_zoom = 17, map = null, layers = {
@@ -95,7 +95,7 @@ urbaClicUtils.urlify = function(text) {
             showMap: !0,
             showData: !0,
             sharelink: !1,
-            getadresse: !1,
+            getadresse: !0,
             getservitude: !0,
             sharelink: !1,
             autocomplete_limit: 50,
@@ -236,7 +236,7 @@ urbaClicUtils.urlify = function(text) {
                 parcelle_id: parcelleId,
                 cadastre: feature.properties,
                 adresse: null,
-                servitudes: []
+                servitudes: null
             };
             for (var i in current_parcelle.loadings) current_parcelle.loadings[i].abort();
             if (jQuery(".urbaclic-data").html(Templates.parcelleData(current_parcelle.data)), 
@@ -251,13 +251,21 @@ urbaClicUtils.urlify = function(text) {
                 });
             }
             if (urbaClic_options.getservitude) {
-                var res_exemple = [ {
-                    type: "AC1",
-                    nom: "Église Saint-Étienne",
-                    surfaceIntersection: 1234,
-                    id: 12345
-                } ];
-                current_parcelle.data.servitudes = res_exemple, jQuery(".urbaclic-data").html(Templates.parcelleData(current_parcelle.data));
+                var geom = layer.toGeoJSON();
+                geom = geom.geometry;
+                var url = URBA_API + "servitudes", params = {
+                    geom: geom
+                };
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: JSON.stringify(params),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(data) {
+                        current_parcelle.data.servitudes = data, jQuery(".urbaclic-data").html(Templates.parcelleData(current_parcelle.data));
+                    }
+                });
             }
         }, focusOff = function() {
             container.find("ul.urbaclic-autocomplete").slideUp();
@@ -279,7 +287,7 @@ urbaClicUtils.urlify = function(text) {
         }), autocomplete(), _urbaclic.map = map, _urbaclic.loadParcelle = loadParcelle, 
         _urbaclic;
     };
-    var BAN_API = "https://api-adresse.data.gouv.fr/", Cadastre_API = "https://apicarto.sgmap.fr/", checklibs = function() {
+    var BAN_API = "https://api-adresse.data.gouv.fr/", URBA_API = "https://urbanisme.api.gouv.fr/", Cadastre_API = "https://apicarto.sgmap.fr/", checklibs = function() {
         var dependences = {
             Handlebars: "https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.2/handlebars.min.js",
             i18n: "https://cdnjs.cloudflare.com/ajax/libs/i18next/1.6.3/i18next-1.6.3.min.js",
