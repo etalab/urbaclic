@@ -10,7 +10,128 @@ urbaClicUtils.urlify = function (text) {
         return '<a href="' + url + '" target="_blank">' + url + '</a>';
     })
 
-}
+};
+
+
+
+urbaClicUtils.closestF = {
+    distance: function (map, latlngA, latlngB) {
+        return map.latLngToLayerPoint(latlngA).distanceTo(map.latLngToLayerPoint(latlngB));
+    },
+
+    closest: function (map, layer, latlng, vertices) {
+        if (typeof layer.getLatLngs != 'function')
+            layer = L.polyline(layer);
+
+        var latlngs = layer.getLatLngs(),
+            mindist = Infinity,
+            result = null,
+            i, n, distance;
+
+
+
+        // Lookup vertices
+        if (vertices) {
+            for (i = 0, n = latlngs.length; i < n; i++) {
+                var ll = latlngs[i];
+                distance = urbaClicUtils.closestF.distance(map, latlng, ll);
+                if (distance < mindist) {
+                    mindist = distance;
+                    result = ll;
+                    result.distance = distance;
+                }
+            }
+            return result;
+        }
+
+        if (layer instanceof L.Polygon) {
+            latlngs.push(latlngs[0]);
+        }
+
+
+
+
+        // Keep the closest point of all segments
+        for (i = 0, n = latlngs.length; i < n - 1; i++) {
+            var latlngA = latlngs[i],
+                latlngB = latlngs[i + 1];
+            distance = urbaClicUtils.closestF.distanceSegment(map, latlng, latlngA, latlngB);
+
+            if (distance <= mindist) {
+                mindist = distance;
+                result = urbaClicUtils.closestF.closestOnSegment(map, latlng, latlngA, latlngB);
+                result.distance = distance;
+            }
+        }
+        return result;
+    },
+
+    closestLayer: function (map, layers, latlng) {
+
+        var mindist = Infinity,
+            result = null,
+            ll = null,
+            distance = Infinity;
+
+        for (var i = 0, n = layers.length; i < n; i++) {
+            var layer = layers[i];
+            // Single dimension, snap on points, else snap on closest
+            if (typeof layer.getLatLng == 'function') {
+                ll = layer.getLatLng();
+                distance = urbaClicUtils.closestF.distance(map, latlng, ll);
+            } else {
+                if (typeof layer.getLayers == 'function') {
+                    var mindist2 = Infinity;
+                    var layers2 = layer.getLayers();
+                    for (var i2 = 0, n2 = layers2.length; i2 < n2; i2++) {
+                        var layer2 = layers2[i2];
+                        ll = urbaClicUtils.closestF.closest(map, layer2, latlng);
+                        if (ll && ll.distance < mindist2) {
+                            distance = ll.distance;
+                            mindist2 = distance;
+                        }
+                    }
+
+                } else {
+                    ll = urbaClicUtils.closestF.closest(map, layer, latlng);
+                    if (ll) distance = ll.distance; // Can return null if layer has no points.
+                }
+            }
+
+            if (distance < mindist) {
+                mindist = distance;
+                result = {
+                    layer: layer,
+                    latlng: ll,
+                    distance: distance
+                };
+            }
+        }
+        return result;
+    },
+
+    distanceSegment: function (map, latlng, latlngA, latlngB) {
+
+        var p = map.latLngToLayerPoint(latlng),
+            p1 = map.latLngToLayerPoint(latlngA),
+            p2 = map.latLngToLayerPoint(latlngB);
+
+        //console.log(p.toString(), p1.toString(), p2.toString(), L.LineUtil.pointToSegmentDistance(p, p1, p2));
+        return L.LineUtil.pointToSegmentDistance(p, p1, p2);
+    },
+
+    closestOnSegment: function (map, latlng, latlngA, latlngB) {
+        var maxzoom = map.getMaxZoom();
+        if (maxzoom === Infinity)
+            maxzoom = map.getZoom();
+        var p = map.project(latlng, maxzoom),
+            p1 = map.project(latlngA, maxzoom),
+            p2 = map.project(latlngB, maxzoom),
+            closest = L.LineUtil.closestPointOnSegment(p, p1, p2);
+        return map.unproject(closest, maxzoom);
+    },
+
+};
 
 urbaClicUtils.baseLayers = {
     "OSM-Fr": {
@@ -138,34 +259,52 @@ jQuery(document).ready(function ($) {
 
 
     Templates.parcelleData = [
-        '<p class="latlng">{{latlng.lat}}, {{latlng.lng}}</p>',
+        '<p class="latlng">position markeur: {{latlng.lat}}, {{latlng.lng}}</p>',
+
+        '{{#ifCond adresse "!=" null}}',
+        '{{#with adresse}}',
+        '<div class="adresse">',
+        '<h4>adresse estimée</h4>',
+        '<ul>',
+        '<li>{{name}} {{postcode}} {{city}}</li>',
+        '</ul>',
+        '</div>',
+        '{{/with}}',
+        '{{/ifCond}}',
 
         '{{#ifCond cadastre "!=" undefined}}',
+        '{{#with cadastre}}',
         '<div class="cadastre">',
         '<h4>cadastre</h4>',
         '<ul>',
-        '<li class="parcelle_id">ID: {{parcelle_id}}</li>',
-        '<li class="code_dep">code_dep: {{cadastre.code_dep}}</li>',
-        '<li class="code_com">code_com: {{cadastre.code_com}}</li>',
-        '<li class="nom_com">nom_com: {{cadastre.nom_com}}</li>',
-        '<li class="code_arr">code_arr: {{cadastre.code_arr}}</li>',
-        '<li class="com_abs">com_abs: {{cadastre.com_abs}}</li>',
-        '<li class="feuille">feuille: {{cadastre.feuille}}</li>',
-        '<li class="section">section: {{cadastre.section}}</li>',
-        '<li class="numero">numero: {{cadastre.numero}}</li>',
-        '<li class="surface_parcelle">surface: {{round cadastre.surface_parcelle}}m²</li>',
+        '<li class="parcelle_id">ID: {{../parcelle_id}}</li>',
+        '<li class="code_dep">code_dep: {{code_dep}}</li>',
+        '<li class="code_com">code_com: {{code_com}}</li>',
+        '<li class="nom_com">nom_com: {{nom_com}}</li>',
+        '<li class="code_arr">code_arr: {{code_arr}}</li>',
+        '<li class="com_abs">com_abs: {{com_abs}}</li>',
+        '<li class="feuille">feuille: {{feuille}}</li>',
+        '<li class="section">section: {{section}}</li>',
+        '<li class="numero">numero: {{numero}}</li>',
+        '<li class="surface_parcelle">surface: {{round surface_parcelle}}m²</li>',
         '</ul>',
         '</div>',
+        '{{/with}}',
         '{{/ifCond}}',
 
 
-        '{{#ifCond adresse "!=" null}}',
-        '<div class="adresse">',
-        '<h4>adresse</h4>',
+
+
+        '{{#ifCond plu "!=" null}}',
+        '{{#with plu}}',
+        '<div class="plu">',
+        '<h4>PLU</h4>',
         '<ul>',
-        '<li>{{adresse.name}} {{adresse.postcode}} {{adresse.city}}</li>',
+        '<li>Libellé:{{LIBELLE}}</li>',
+        '<p>{{TXT}}</p>',
         '</ul>',
         '</div>',
+        '{{/with}}',
         '{{/ifCond}}',
 
         '{{#ifCond servitudes "!=" null}}',
@@ -201,11 +340,13 @@ jQuery(document).ready(function ($) {
 
         var map = null;
 
+        var current_citycode = null;
+
         var layers = {
             ban: null,
             adresse: null,
-            //parcelle: null,
-            parcelles: null
+            parcelle: null,
+            // parcelles: null
         }
 
         var backgroundLayers = {};
@@ -216,6 +357,7 @@ jQuery(document).ready(function ($) {
             sharelink: false,
             getadresse: true,
             getservitude: true,
+            getPlu: true,
             sharelink: false,
             autocomplete_limit: 50,
             leaflet_map_options: {},
@@ -224,9 +366,9 @@ jQuery(document).ready(function ($) {
 
         var ban_query = null;
         var cadastre_query = null;
-        var cadastre_query2 = null;
         var zoom_timeout = null;
         var focusOff_timeout = null;
+        var loadParcelle_timeout = null;
 
         var current_parcelle = {
             loadings: []
@@ -282,12 +424,8 @@ jQuery(document).ready(function ($) {
 
 
         var autocomplete = function () {
-            if (zoom_timeout) clearTimeout(zoom_timeout);
-            if (layers.ban) map.removeLayer(layers.ban);
-            if (layers.adresse) map.removeLayer(layers.adresse);
 
 
-            layers.adresse = null;
             if (ban_query) ban_query.abort();
             input.prop('tabindex', 1000);
             var t = input.val();
@@ -310,34 +448,16 @@ jQuery(document).ready(function ($) {
                     if (data.features.length) {
                         ul.html(Templates.autocomplete(data)).slideDown();
 
-                        var layer = L.geoJson(data, {
-                            pointToLayer: circle_pointToLayer,
-                            style: {
-                                'className': 'ban'
-                            }
-                        }).addTo(map);
-                        zoom_timeout = setTimeout(function () {
-                            map.fitBounds(layer.getBounds());
-                        }, 500);
-
-                        layer.on('click', function (e) {
-                            var feature = e.layer.feature;
-                            var type = feature.properties.type;
-                            loadParcelle({
-                                feature: feature,
-                                type: type
-                            });
-                        });
-
-                        layer.bringToFront();
-                        layers.ban = layer;
-                        updateLayerController();
-
                         var tbindex = 1000;
                         container.find('ul.urbaclic-autocomplete a').each(function () {
                             tbindex++;
                             jQuery(this).prop('tabindex', tbindex);
-                        })
+                        });
+
+                        if (data.features.length == 1) {
+                            initMarker(container.find('ul.urbaclic-autocomplete a').first().data());
+                        }
+
 
 
                     } else {
@@ -378,80 +498,54 @@ jQuery(document).ready(function ($) {
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-            map.on('moveend', function () {
 
-                if (cadastre_query2) cadastre_query2.abort();
-
-
-                if (map.getZoom() >= cadastre_min_zoom) {
-
-                    var url = Cadastre_API + 'cadastre/geometrie';
-                    var rect = L.rectangle(map.getBounds());
-                    var qparams = {
-                        geom: JSON.stringify(rect.toGeoJSON())
-                    };
-
-                    cadastre_query2 = jQuery.getJSON(url, qparams, function (data) {
-                        if (data.features.length) {
-                            var layer = L.geoJson(data, {
-                                onEachFeature: function (feature, layer) {
-                                    if (urbaClic_options.showMap) {
-                                        layer.on('click', function (e) {
-                                            //e.preventDefault();
-                                            showData(feature, layer, e);
-                                        });
-
-                                    } else {
-                                        var html = default_template(feature);
-                                        layer.bindPopup(html);
-                                    }
-                                },
-                                style: {
-                                    'className': 'parcelles'
-                                }
-                            });
-                            if (layers.parcelles) map.removeLayer(layers.parcelles);
-                            layers.parcelles = null;
-                            layer.addTo(map);
-                            layer.bringToBack();
-                            layers.parcelles = layer;
-                            updateLayerController();
-                        } else {
-                            console.info('aucune parcelle trouvée');
-                        }
-
-                    });
-                } else {
-                    if (layers.parcelles) {
-                        map.removeLayer(layers.parcelles);
-                        layers.parcelles = null;
-                        updateLayerController();
-                    }
-                }
-            });
         }
 
-
-        var addAdressLayer = function (data) {
-            if (layers.adresse) map.removeLayer(layers.adresse);
+        var addBanLayer = function (data) {
+            if (layers.ban) map.removeLayer(layers.ban);
             var layer = L.geoJson(data, {
                 onEachFeature: function (feature, layer) {
                     var html = default_template(feature);
                     layer.bindPopup(html);
                 },
+                pointToLayer: circle_pointToLayer,
                 style: {
-                    'className': 'adresse'
+                    'className': 'ban'
                 }
             }).addTo(map);
+            layers.ban = layer;
+            updateLayerController();
+            return layer;
+        }
+
+
+        var addAdressLayer = function (data) {
+            if (layers.adresse) map.removeLayer(layers.adresse);
+
+
+            var layer = L.marker([data.features[0].geometry.coordinates[1], data.features[0].geometry.coordinates[0]], {
+                style: {
+                    'className': 'adresse'
+                },
+                draggable: true
+            }).addTo(map);
+
+
             layers.adresse = layer;
             updateLayerController();
             return layer;
         };
 
 
+        var initMarker = function (params) {
+            input.val(params.feature.properties.label);
 
-        var loadParcelle = function (params) {
+            current_citycode = params.feature.properties.citycode;
 
+            if (layers.adresse) map.removeLayer(layers.adresse);
+            var marker_pos = {
+                latlng: L.latLng(params.feature.geometry.coordinates[1], params.feature.geometry.coordinates[0])
+            };
 
             focusOff();
             if (zoom_timeout) clearTimeout(zoom_timeout);
@@ -461,20 +555,35 @@ jQuery(document).ready(function ($) {
                 features: [params.feature]
             };
 
-            var layer = addAdressLayer(adresse_json);
+            layers.adresse = addAdressLayer(adresse_json);
+            map.fitBounds(L.featureGroup([layers.adresse]).getBounds());
 
-            map.fitBounds(layer.getBounds());
+            loadParcelle();
+
+            layers.adresse.on('drag', function (e) {
+                clearTimeout(loadParcelle_timeout);
+                loadParcelle_timeout = setTimeout(loadParcelle, 10);
+            });
+
+        }
 
 
-            /*if (layers.parcelle) map.removeLayer(layers.parcelle);
-            layers.parcelle = null;
+        var loadParcelle = function () {
+
+
+            var feature = layers.adresse.toGeoJSON();
+            var marker_pos = {
+                latlng: layers.adresse.getLatLng()
+            };
+
+
             if (cadastre_query) cadastre_query.abort();
             var url = Cadastre_API + 'cadastre/geometrie';
             var qparams = {
-                geom: JSON.stringify(params.feature)
+                geom: JSON.stringify(feature)
             };
 
-            input.val(params.feature.properties.label)
+
 
             cadastre_query = jQuery.getJSON(url, qparams, function (data) {
                 if (data.features.length) {
@@ -488,15 +597,90 @@ jQuery(document).ready(function ($) {
                         }
                     }).addTo(map);
                     map.fitBounds(layer.getBounds());
+                    if (layers.parcelle) map.removeLayer(layers.parcelle);
                     layers.parcelle = layer;
+                    var parcelle_obj = layers.parcelle.getLayers()[0];
+
+                    showData(parcelle_obj.feature, parcelle_obj, marker_pos);
+                } else {
+                    console.info('aucune parcelle trouvée à ' + marker_pos.latlng.toString());
+                    loadClosest(marker_pos.latlng, current_citycode);
+                }
+
+            });
+        };
+
+        var loadClosest = function (latlng, citycode) {
+
+            console.info('recherche plus proche parcelle sur commune ' + citycode);
+
+            if (cadastre_query) cadastre_query.abort();
+
+            var delta = 0.0005; // en degres
+            var bb = [
+                [latlng.lat - delta, latlng.lng - delta],
+                [latlng.lat + delta, latlng.lng + delta]
+            ];
+
+            var limit_geojson = L.rectangle(bb).toGeoJSON();
+
+
+            var url = Cadastre_API + 'cadastre/geometrie';
+            var rect = L.rectangle(map.getBounds());
+            var qparams = {
+                geom: JSON.stringify(limit_geojson)
+            };
+
+            cadastre_query = jQuery.getJSON(url, qparams, function (data) {
+
+
+                //filtre ne garde que les parcelles de ma même commune que adresse
+                /* data.features = jQuery.grep(data.features, function (f) {
+                    var citycode2 = f.properties.code_dep + f.properties.code_com;
+                    return (citycode == citycode2);
+                });*/
+
+
+                if (data.features.length) {
+                    var layer = L.geoJson(data, {
+                        onEachFeature: function (feature, layer) {
+                            var html = default_template(feature);
+                            layer.bindPopup(html);
+                        },
+                        style: {
+                            'className': 'parcelle'
+                        }
+                    });
+
+
+                    var closest = urbaClicUtils.closestF.closestLayer(map, layer.getLayers(), latlng);
+
+                    var parcelle = closest.layer;
+                    if (parcelle) {
+                        if (layers.parcelle) map.removeLayer(layers.parcelle);
+                        layers.parcelle = parcelle;
+                        parcelle.addTo(map);
+                        var marker_pos = {
+                            latlng: closest.latlng
+                        };
+                        showData(parcelle.feature, parcelle, marker_pos);
+                    }
+
+
                 } else {
                     console.info('aucune parcelle trouvée');
                 }
+            });
 
-            });*/
+
+
+
+
         };
 
         var showData = function (feature, layer, evt) {
+
+            map.fitBounds(layer.getBounds());
             var parcelleId = [
                 feature.properties.code_dep,
                 feature.properties.code_com
@@ -508,9 +692,9 @@ jQuery(document).ready(function ($) {
                 parcelleId.push(feature.properties.com_abs);
             }
 
-            for (var i in layer._layers) {
+            /* for (var i in layer._layers) {
                 layer._layers[i]._container.setAttribute('class', 'active');
-            }
+            }*/
 
 
             parcelleId.push(feature.properties.section);
@@ -533,7 +717,7 @@ jQuery(document).ready(function ($) {
                 current_parcelle.loadings[i].abort();
             }
 
-            //console.log(current_parcelle.data);
+
             jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
 
             //load adresse
@@ -545,7 +729,8 @@ jQuery(document).ready(function ($) {
                 };
 
                 current_parcelle.loadings.ban_query = jQuery.getJSON(url, params, function (data) {
-                    addAdressLayer(data);
+                    addBanLayer(data);
+                    //if (layers.ban) map.removeLayer(layers.ban);
                     if (data.features[0] != undefined) {
                         current_parcelle.data.adresse = data.features[0].properties;
                         jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
@@ -580,6 +765,43 @@ jQuery(document).ready(function ($) {
 
 
                 //****************************************************************************************
+            }
+
+            //load_servitudes
+            if (urbaClic_options.getPlu) {
+                //****************************************************************************************
+
+                /* var geom = layer.toGeoJSON();
+                geom = geom.geometry;
+                var url = URBA_API + 'servitudes';
+
+                var params = {
+                    geom: geom
+                };
+
+
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: JSON.stringify(params),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        current_parcelle.data.servitudes = data;
+                        jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
+                    }
+                });*/
+
+                var plu_data = {
+                    'LIBELLE': 'Espace boisé classé',
+                    'TXT': 'Description'
+
+                };
+                current_parcelle.data.plu = plu_data;
+                jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
+
+
+                //****************************************************************************************
 
             }
 
@@ -606,7 +828,7 @@ jQuery(document).ready(function ($) {
 
         container.on('click', 'ul.urbaclic-autocomplete [data-feature]', function (e) {
             e.preventDefault();
-            loadParcelle(jQuery(this).data());
+            initMarker(jQuery(this).data());
         }).on('mouseover', 'ul.urbaclic-autocomplete', function (e) {
             clearTimeout(focusOff_timeout);
         }).on('focusin', 'ul.urbaclic-autocomplete *', function (e) {
@@ -620,6 +842,7 @@ jQuery(document).ready(function ($) {
 
         _urbaclic.map = map;
         _urbaclic.loadParcelle = loadParcelle;
+        _urbaclic.initMarker = initMarker;
         return _urbaclic;
     };
 

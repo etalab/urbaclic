@@ -1,4 +1,4 @@
-/*! 25-03-2016 */
+/*! 01-04-2016 */
 var urbaClic, urbaClicUtils = {};
 
 urbaClicUtils.urlify = function(text) {
@@ -7,6 +7,55 @@ urbaClicUtils.urlify = function(text) {
     return text.replace(urlRegex, function(url) {
         return '<a href="' + url + '" target="_blank">' + url + "</a>";
     });
+}, urbaClicUtils.closestF = {
+    distance: function(map, latlngA, latlngB) {
+        return map.latLngToLayerPoint(latlngA).distanceTo(map.latLngToLayerPoint(latlngB));
+    },
+    closest: function(map, layer, latlng, vertices) {
+        "function" != typeof layer.getLatLngs && (layer = L.polyline(layer));
+        var i, n, distance, latlngs = layer.getLatLngs(), mindist = 1 / 0, result = null;
+        if (vertices) {
+            for (i = 0, n = latlngs.length; n > i; i++) {
+                var ll = latlngs[i];
+                distance = urbaClicUtils.closestF.distance(map, latlng, ll), mindist > distance && (mindist = distance, 
+                result = ll, result.distance = distance);
+            }
+            return result;
+        }
+        for (layer instanceof L.Polygon && latlngs.push(latlngs[0]), i = 0, n = latlngs.length; n - 1 > i; i++) {
+            var latlngA = latlngs[i], latlngB = latlngs[i + 1];
+            distance = urbaClicUtils.closestF.distanceSegment(map, latlng, latlngA, latlngB), 
+            mindist >= distance && (mindist = distance, result = urbaClicUtils.closestF.closestOnSegment(map, latlng, latlngA, latlngB), 
+            result.distance = distance);
+        }
+        return result;
+    },
+    closestLayer: function(map, layers, latlng) {
+        for (var mindist = 1 / 0, result = null, ll = null, distance = 1 / 0, i = 0, n = layers.length; n > i; i++) {
+            var layer = layers[i];
+            if ("function" == typeof layer.getLatLng) ll = layer.getLatLng(), distance = urbaClicUtils.closestF.distance(map, latlng, ll); else if ("function" == typeof layer.getLayers) for (var mindist2 = 1 / 0, layers2 = layer.getLayers(), i2 = 0, n2 = layers2.length; n2 > i2; i2++) {
+                var layer2 = layers2[i2];
+                ll = urbaClicUtils.closestF.closest(map, layer2, latlng), ll && ll.distance < mindist2 && (distance = ll.distance, 
+                mindist2 = distance);
+            } else ll = urbaClicUtils.closestF.closest(map, layer, latlng), ll && (distance = ll.distance);
+            mindist > distance && (mindist = distance, result = {
+                layer: layer,
+                latlng: ll,
+                distance: distance
+            });
+        }
+        return result;
+    },
+    distanceSegment: function(map, latlng, latlngA, latlngB) {
+        var p = map.latLngToLayerPoint(latlng), p1 = map.latLngToLayerPoint(latlngA), p2 = map.latLngToLayerPoint(latlngB);
+        return L.LineUtil.pointToSegmentDistance(p, p1, p2);
+    },
+    closestOnSegment: function(map, latlng, latlngA, latlngB) {
+        var maxzoom = map.getMaxZoom();
+        maxzoom === 1 / 0 && (maxzoom = map.getZoom());
+        var p = map.project(latlng, maxzoom), p1 = map.project(latlngA, maxzoom), p2 = map.project(latlngB, maxzoom), closest = L.LineUtil.closestPointOnSegment(p, p1, p2);
+        return map.unproject(closest, maxzoom);
+    }
 }, urbaClicUtils.baseLayers = {
     "OSM-Fr": {
         title: "OSM-Fr",
@@ -84,24 +133,25 @@ urbaClicUtils.urlify = function(text) {
     var Templates = {}, sortDesc = !1;
     Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">', "   {{marks properties.label ../query}}", "   &nbsp;<i>{{_ properties.type}}</i>", "</a></li>", "{{/each}}" ], 
     Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ], 
-    Templates.parcelleData = [ '<p class="latlng">{{latlng.lat}}, {{latlng.lng}}</p>', '{{#ifCond cadastre "!=" undefined}}', '<div class="cadastre">', "<h4>cadastre</h4>", "<ul>", '<li class="parcelle_id">ID: {{parcelle_id}}</li>', '<li class="code_dep">code_dep: {{cadastre.code_dep}}</li>', '<li class="code_com">code_com: {{cadastre.code_com}}</li>', '<li class="nom_com">nom_com: {{cadastre.nom_com}}</li>', '<li class="code_arr">code_arr: {{cadastre.code_arr}}</li>', '<li class="com_abs">com_abs: {{cadastre.com_abs}}</li>', '<li class="feuille">feuille: {{cadastre.feuille}}</li>', '<li class="section">section: {{cadastre.section}}</li>', '<li class="numero">numero: {{cadastre.numero}}</li>', '<li class="surface_parcelle">surface: {{round cadastre.surface_parcelle}}m²</li>', "</ul>", "</div>", "{{/ifCond}}", '{{#ifCond adresse "!=" null}}', '<div class="adresse">', "<h4>adresse</h4>", "<ul>", "<li>{{adresse.name}} {{adresse.postcode}} {{adresse.city}}</li>", "</ul>", "</div>", "{{/ifCond}}", '{{#ifCond servitudes "!=" null}}', '<div class="servitudes">', "<h4>servitudes</h4>", "<ul>", '{{#ifCount servitudes "==" 0}}', "<li>aucune</li>", "{{/ifCount}}", "{{#each servitudes}}", "<li>{{type}} {{nom}} id:{{id}}</li>", "{{/each}}", "</ul>", "</div>", "{{/ifCond}}" ];
+    Templates.parcelleData = [ '<p class="latlng">position markeur: {{latlng.lat}}, {{latlng.lng}}</p>', '{{#ifCond adresse "!=" null}}', "{{#with adresse}}", '<div class="adresse">', "<h4>adresse estimée</h4>", "<ul>", "<li>{{name}} {{postcode}} {{city}}</li>", "</ul>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond cadastre "!=" undefined}}', "{{#with cadastre}}", '<div class="cadastre">', "<h4>cadastre</h4>", "<ul>", '<li class="parcelle_id">ID: {{../parcelle_id}}</li>', '<li class="code_dep">code_dep: {{code_dep}}</li>', '<li class="code_com">code_com: {{code_com}}</li>', '<li class="nom_com">nom_com: {{nom_com}}</li>', '<li class="code_arr">code_arr: {{code_arr}}</li>', '<li class="com_abs">com_abs: {{com_abs}}</li>', '<li class="feuille">feuille: {{feuille}}</li>', '<li class="section">section: {{section}}</li>', '<li class="numero">numero: {{numero}}</li>', '<li class="surface_parcelle">surface: {{round surface_parcelle}}m²</li>', "</ul>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond plu "!=" null}}', "{{#with plu}}", '<div class="plu">', "<h4>PLU</h4>", "<ul>", "<li>Libellé:{{LIBELLE}}</li>", "<p>{{TXT}}</p>", "</ul>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond servitudes "!=" null}}', '<div class="servitudes">', "<h4>servitudes</h4>", "<ul>", '{{#ifCount servitudes "==" 0}}', "<li>aucune</li>", "{{/ifCount}}", "{{#each servitudes}}", "<li>{{type}} {{nom}} id:{{id}}</li>", "{{/each}}", "</ul>", "</div>", "{{/ifCond}}" ];
     var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
-        var container = obj, cadastre_min_zoom = 17, map = null, layers = {
+        var container = obj, cadastre_min_zoom = 17, map = null, current_citycode = null, layers = {
             ban: null,
             adresse: null,
-            parcelles: null
+            parcelle: null
         }, backgroundLayers = {}, urbaClic_options = {
             showMap: !0,
             showData: !0,
             sharelink: !1,
             getadresse: !0,
             getservitude: !0,
+            getPlu: !0,
             sharelink: !1,
             autocomplete_limit: 50,
             leaflet_map_options: {},
             background_layers: [ "OpenStreetMap", "MapQuest_Open", "OpenTopoMap" ]
-        }, ban_query = null, cadastre_query = null, cadastre_query2 = null, zoom_timeout = null, focusOff_timeout = null, current_parcelle = {
+        }, ban_query = null, cadastre_query = null, zoom_timeout = null, focusOff_timeout = null, loadParcelle_timeout = null, current_parcelle = {
             loadings: []
         };
         urbaClic_options = jQuery.extend(urbaClic_options, options);
@@ -129,9 +179,7 @@ urbaClicUtils.urlify = function(text) {
             backgroundLayers[title] = layer, show === !0 && layer.addTo(map), updateLayerController();
         };
         var autocomplete = function() {
-            zoom_timeout && clearTimeout(zoom_timeout), layers.ban && map.removeLayer(layers.ban), 
-            layers.adresse && map.removeLayer(layers.adresse), layers.adresse = null, ban_query && ban_query.abort(), 
-            input.prop("tabindex", 1e3);
+            ban_query && ban_query.abort(), input.prop("tabindex", 1e3);
             var t = input.val();
             if (t.length > 1) {
                 var ul = container.find("ul.urbaclic-autocomplete");
@@ -141,25 +189,10 @@ urbaClicUtils.urlify = function(text) {
                 params.q = t, ban_query = jQuery.getJSON(url, params, function(data) {
                     if (ban_query = null, data.features.length) {
                         ul.html(Templates.autocomplete(data)).slideDown();
-                        var layer = L.geoJson(data, {
-                            pointToLayer: circle_pointToLayer,
-                            style: {
-                                className: "ban"
-                            }
-                        }).addTo(map);
-                        zoom_timeout = setTimeout(function() {
-                            map.fitBounds(layer.getBounds());
-                        }, 500), layer.on("click", function(e) {
-                            var feature = e.layer.feature, type = feature.properties.type;
-                            loadParcelle({
-                                feature: feature,
-                                type: type
-                            });
-                        }), layer.bringToFront(), layers.ban = layer, updateLayerController();
                         var tbindex = 1e3;
                         container.find("ul.urbaclic-autocomplete a").each(function() {
                             tbindex++, jQuery(this).prop("tabindex", tbindex);
-                        });
+                        }), 1 == data.features.length && initMarker(container.find("ul.urbaclic-autocomplete a").first().data());
                     } else ul.html("").fadeOut();
                 });
             } else container.find("ul.urbaclic-autocomplete").html("").slideUp();
@@ -178,57 +211,102 @@ urbaClicUtils.urlify = function(text) {
                 var l = L.tileLayer(bl.url), t = bl.title;
                 _urbaclic.addBackground(t, l, 0 == i);
             }
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map), map.on("moveend", function() {
-                if (cadastre_query2 && cadastre_query2.abort(), map.getZoom() >= cadastre_min_zoom) {
-                    var url = Cadastre_API + "cadastre/geometrie", rect = L.rectangle(map.getBounds()), qparams = {
-                        geom: JSON.stringify(rect.toGeoJSON())
-                    };
-                    cadastre_query2 = jQuery.getJSON(url, qparams, function(data) {
-                        if (data.features.length) {
-                            var layer = L.geoJson(data, {
-                                onEachFeature: function(feature, layer) {
-                                    if (urbaClic_options.showMap) layer.on("click", function(e) {
-                                        showData(feature, layer, e);
-                                    }); else {
-                                        var html = default_template(feature);
-                                        layer.bindPopup(html);
-                                    }
-                                },
-                                style: {
-                                    className: "parcelles"
-                                }
-                            });
-                            layers.parcelles && map.removeLayer(layers.parcelles), layers.parcelles = null, 
-                            layer.addTo(map), layer.bringToBack(), layers.parcelles = layer, updateLayerController();
-                        } else console.info("aucune parcelle trouvée");
-                    });
-                } else layers.parcelles && (map.removeLayer(layers.parcelles), layers.parcelles = null, 
-                updateLayerController());
-            });
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
         }
-        var addAdressLayer = function(data) {
-            layers.adresse && map.removeLayer(layers.adresse);
+        var addBanLayer = function(data) {
+            layers.ban && map.removeLayer(layers.ban);
             var layer = L.geoJson(data, {
                 onEachFeature: function(feature, layer) {
                     var html = default_template(feature);
                     layer.bindPopup(html);
                 },
+                pointToLayer: circle_pointToLayer,
                 style: {
-                    className: "adresse"
+                    className: "ban"
                 }
             }).addTo(map);
+            return layers.ban = layer, updateLayerController(), layer;
+        }, addAdressLayer = function(data) {
+            layers.adresse && map.removeLayer(layers.adresse);
+            var layer = L.marker([ data.features[0].geometry.coordinates[1], data.features[0].geometry.coordinates[0] ], {
+                style: {
+                    className: "adresse"
+                },
+                draggable: !0
+            }).addTo(map);
             return layers.adresse = layer, updateLayerController(), layer;
-        }, loadParcelle = function(params) {
+        }, initMarker = function(params) {
+            input.val(params.feature.properties.label), current_citycode = params.feature.properties.citycode, 
+            layers.adresse && map.removeLayer(layers.adresse);
+            ({
+                latlng: L.latLng(params.feature.geometry.coordinates[1], params.feature.geometry.coordinates[0])
+            });
             focusOff(), zoom_timeout && clearTimeout(zoom_timeout);
             var adresse_json = {
                 type: "FeatureCollection",
                 features: [ params.feature ]
-            }, layer = addAdressLayer(adresse_json);
-            map.fitBounds(layer.getBounds());
+            };
+            layers.adresse = addAdressLayer(adresse_json), map.fitBounds(L.featureGroup([ layers.adresse ]).getBounds()), 
+            loadParcelle(), layers.adresse.on("drag", function(e) {
+                clearTimeout(loadParcelle_timeout), loadParcelle_timeout = setTimeout(loadParcelle, 10);
+            });
+        }, loadParcelle = function() {
+            var feature = layers.adresse.toGeoJSON(), marker_pos = {
+                latlng: layers.adresse.getLatLng()
+            };
+            cadastre_query && cadastre_query.abort();
+            var url = Cadastre_API + "cadastre/geometrie", qparams = {
+                geom: JSON.stringify(feature)
+            };
+            cadastre_query = jQuery.getJSON(url, qparams, function(data) {
+                if (data.features.length) {
+                    var layer = L.geoJson(data, {
+                        onEachFeature: function(feature, layer) {
+                            var html = default_template(feature);
+                            layer.bindPopup(html);
+                        },
+                        style: {
+                            className: "parcelle"
+                        }
+                    }).addTo(map);
+                    map.fitBounds(layer.getBounds()), layers.parcelle && map.removeLayer(layers.parcelle), 
+                    layers.parcelle = layer;
+                    var parcelle_obj = layers.parcelle.getLayers()[0];
+                    showData(parcelle_obj.feature, parcelle_obj, marker_pos);
+                } else console.info("aucune parcelle trouvée à " + marker_pos.latlng.toString()), 
+                loadClosest(marker_pos.latlng, current_citycode);
+            });
+        }, loadClosest = function(latlng, citycode) {
+            console.info("recherche plus proche parcelle sur commune " + citycode), cadastre_query && cadastre_query.abort();
+            var delta = 5e-4, bb = [ [ latlng.lat - delta, latlng.lng - delta ], [ latlng.lat + delta, latlng.lng + delta ] ], limit_geojson = L.rectangle(bb).toGeoJSON(), url = Cadastre_API + "cadastre/geometrie", qparams = (L.rectangle(map.getBounds()), 
+            {
+                geom: JSON.stringify(limit_geojson)
+            });
+            cadastre_query = jQuery.getJSON(url, qparams, function(data) {
+                if (data.features.length) {
+                    var layer = L.geoJson(data, {
+                        onEachFeature: function(feature, layer) {
+                            var html = default_template(feature);
+                            layer.bindPopup(html);
+                        },
+                        style: {
+                            className: "parcelle"
+                        }
+                    }), closest = urbaClicUtils.closestF.closestLayer(map, layer.getLayers(), latlng), parcelle = closest.layer;
+                    if (parcelle) {
+                        layers.parcelle && map.removeLayer(layers.parcelle), layers.parcelle = parcelle, 
+                        parcelle.addTo(map);
+                        var marker_pos = {
+                            latlng: closest.latlng
+                        };
+                        showData(parcelle.feature, parcelle, marker_pos);
+                    }
+                } else console.info("aucune parcelle trouvée");
+            });
         }, showData = function(feature, layer, evt) {
+            map.fitBounds(layer.getBounds());
             var parcelleId = [ feature.properties.code_dep, feature.properties.code_com ];
-            "000" != feature.properties.code_arr ? parcelleId.push(feature.properties.code_arr) : parcelleId.push(feature.properties.com_abs);
-            for (var i in layer._layers) layer._layers[i]._container.setAttribute("class", "active");
+            "000" != feature.properties.code_arr ? parcelleId.push(feature.properties.code_arr) : parcelleId.push(feature.properties.com_abs), 
             parcelleId.push(feature.properties.section), parcelleId.push(feature.properties.numero), 
             parcelleId = parcelleId.join(""), urbaClic_options.showData && (jQuery(".urbaclic-data").length || jQuery('<div class="urbaclic-data"></div>').appendTo(container)), 
             current_parcelle.data = {
@@ -246,7 +324,7 @@ urbaClicUtils.urlify = function(text) {
                     lat: current_parcelle.data.latlng.lat
                 };
                 current_parcelle.loadings.ban_query = jQuery.getJSON(url, params, function(data) {
-                    addAdressLayer(data), void 0 != data.features[0] && (current_parcelle.data.adresse = data.features[0].properties, 
+                    addBanLayer(data), void 0 != data.features[0] && (current_parcelle.data.adresse = data.features[0].properties, 
                     jQuery(".urbaclic-data").html(Templates.parcelleData(current_parcelle.data)));
                 });
             }
@@ -267,6 +345,13 @@ urbaClicUtils.urlify = function(text) {
                     }
                 });
             }
+            if (urbaClic_options.getPlu) {
+                var plu_data = {
+                    LIBELLE: "Espace boisé classé",
+                    TXT: "Description"
+                };
+                current_parcelle.data.plu = plu_data, jQuery(".urbaclic-data").html(Templates.parcelleData(current_parcelle.data));
+            }
         }, focusOff = function() {
             container.find("ul.urbaclic-autocomplete").slideUp();
         };
@@ -277,7 +362,7 @@ urbaClicUtils.urlify = function(text) {
         }).focusout(function() {
             clearTimeout(focusOff_timeout), focusOff_timeout = setTimeout(focusOff, 200);
         }), container.on("click", "ul.urbaclic-autocomplete [data-feature]", function(e) {
-            e.preventDefault(), loadParcelle(jQuery(this).data());
+            e.preventDefault(), initMarker(jQuery(this).data());
         }).on("mouseover", "ul.urbaclic-autocomplete", function(e) {
             clearTimeout(focusOff_timeout);
         }).on("focusin", "ul.urbaclic-autocomplete *", function(e) {
@@ -285,7 +370,7 @@ urbaClicUtils.urlify = function(text) {
         }).on("focusout", "ul.urbaclic-autocomplete *", function(e) {
             clearTimeout(focusOff_timeout), focusOff_timeout = setTimeout(focusOff, 200);
         }), autocomplete(), _urbaclic.map = map, _urbaclic.loadParcelle = loadParcelle, 
-        _urbaclic;
+        _urbaclic.initMarker = initMarker, _urbaclic;
     };
     var BAN_API = "https://api-adresse.data.gouv.fr/", URBA_API = "https://urbanisme.api.gouv.fr/", Cadastre_API = "https://apicarto.sgmap.fr/", checklibs = function() {
         var dependences = {
