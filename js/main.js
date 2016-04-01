@@ -587,6 +587,7 @@ jQuery(document).ready(function ($) {
 
             cadastre_query = jQuery.getJSON(url, qparams, function (data) {
                 if (data.features.length) {
+                    if (layers.parcelle) map.removeLayer(layers.parcelle);
                     var layer = L.geoJson(data, {
                         onEachFeature: function (feature, layer) {
                             var html = default_template(feature);
@@ -597,7 +598,6 @@ jQuery(document).ready(function ($) {
                         }
                     }).addTo(map);
                     map.fitBounds(layer.getBounds());
-                    if (layers.parcelle) map.removeLayer(layers.parcelle);
                     layers.parcelle = layer;
                     var parcelle_obj = layers.parcelle.getLayers()[0];
 
@@ -660,6 +660,7 @@ jQuery(document).ready(function ($) {
                         if (layers.parcelle) map.removeLayer(layers.parcelle);
                         layers.parcelle = parcelle;
                         parcelle.addTo(map);
+                        map.fitBounds(layers.parcelle.getBounds());
                         var marker_pos = {
                             latlng: closest.latlng
                         };
