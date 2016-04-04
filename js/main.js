@@ -24,9 +24,9 @@ urbaClicUtils.closestF = {
             layer = L.polyline(layer);
 
         var latlngs = layer.getLatLngs(),
-            mindist = Infinity,
-            result = null,
-            i, n, distance;
+        mindist = Infinity,
+        result = null,
+        i, n, distance;
 
 
 
@@ -54,7 +54,7 @@ urbaClicUtils.closestF = {
         // Keep the closest point of all segments
         for (i = 0, n = latlngs.length; i < n - 1; i++) {
             var latlngA = latlngs[i],
-                latlngB = latlngs[i + 1];
+            latlngB = latlngs[i + 1];
             distance = urbaClicUtils.closestF.distanceSegment(map, latlng, latlngA, latlngB);
 
             if (distance <= mindist) {
@@ -69,9 +69,9 @@ urbaClicUtils.closestF = {
     closestLayer: function (map, layers, latlng) {
 
         var mindist = Infinity,
-            result = null,
-            ll = null,
-            distance = Infinity;
+        result = null,
+        ll = null,
+        distance = Infinity;
 
         for (var i = 0, n = layers.length; i < n; i++) {
             var layer = layers[i];
@@ -113,8 +113,8 @@ urbaClicUtils.closestF = {
     distanceSegment: function (map, latlng, latlngA, latlngB) {
 
         var p = map.latLngToLayerPoint(latlng),
-            p1 = map.latLngToLayerPoint(latlngA),
-            p2 = map.latLngToLayerPoint(latlngB);
+        p1 = map.latLngToLayerPoint(latlngA),
+        p2 = map.latLngToLayerPoint(latlngB);
 
         //console.log(p.toString(), p1.toString(), p2.toString(), L.LineUtil.pointToSegmentDistance(p, p1, p2));
         return L.LineUtil.pointToSegmentDistance(p, p1, p2);
@@ -125,9 +125,9 @@ urbaClicUtils.closestF = {
         if (maxzoom === Infinity)
             maxzoom = map.getZoom();
         var p = map.project(latlng, maxzoom),
-            p1 = map.project(latlngA, maxzoom),
-            p2 = map.project(latlngB, maxzoom),
-            closest = L.LineUtil.closestPointOnSegment(p, p1, p2);
+        p1 = map.project(latlngA, maxzoom),
+        p2 = map.project(latlngB, maxzoom),
+        closest = L.LineUtil.closestPointOnSegment(p, p1, p2);
         return map.unproject(closest, maxzoom);
     },
 
@@ -271,21 +271,21 @@ jQuery(document).ready(function ($) {
 
 
     Templates.autocomplete = [
-        '{{#each features}}',
-        '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">',
-        '   {{marks properties.label ../query}}',
+    '{{#each features}}',
+    '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">',
+    '   {{marks properties.label ../query}}',
         //'   {{properties.label}}',
         '   &nbsp;<i>{{_ properties.type}}</i>',
         '</a></li>',
         '{{/each}}',
-    ];
+        ];
 
 
 
 
 
 
-    Templates.shareLink = [
+        Templates.shareLink = [
         '<div class="uData-shareLink">',
         '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>',
         '<div class="hidden">',
@@ -308,10 +308,10 @@ jQuery(document).ready(function ($) {
         "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>",
         '</div>',
         '</div>',
-    ];
+        ];
 
 
-    Templates.parcelleData = [
+        Templates.parcelleData = [
 
         '{{#ifCond adresse "!=" null}}',
 
@@ -427,7 +427,7 @@ jQuery(document).ready(function ($) {
         '</div>',
         '{{/ifCond}}'
 
-    ];
+        ];
 
 
 
@@ -559,16 +559,16 @@ jQuery(document).ready(function ($) {
                     query: "",
                     type: "FeatureCollection",
                     features: [{
-                            geometry: {
-                                type: "Point",
-                                coordinates: [latlng[1], latlng[0]]
-                            },
-                            properties: {
-                                label: t,
-                                type: "latlng"
-                            },
-                            type: "Feature"
-                        }
+                        geometry: {
+                            type: "Point",
+                            coordinates: [latlng[1], latlng[0]]
+                        },
+                        properties: {
+                            label: t,
+                            type: "latlng"
+                        },
+                        type: "Feature"
+                    }
 
                     ]
                 };
@@ -638,7 +638,7 @@ jQuery(document).ready(function ($) {
              *Nouvelle classe de Leaflet pour supporter les flux WMTS (basÃ©e sur L.TileLayer.WMS)
              *New Leaflet's class to support WMTS (based on L.TileLayer.WMS)
              */
-            L.TileLayer.WMTS = L.TileLayer.extend({
+             L.TileLayer.WMTS = L.TileLayer.extend({
 
                 defaultWmtsParams: {
                     service: 'WMTS',
@@ -653,7 +653,7 @@ jQuery(document).ready(function ($) {
                 initialize: function (url, options) { // (String, Object)
                     this._url = url;
                     var wmtsParams = L.extend({}, this.defaultWmtsParams),
-                        tileSize = options.tileSize || this.options.tileSize;
+                    tileSize = options.tileSize || this.options.tileSize;
                     if (options.detectRetina && L.Browser.retina) {
                         wmtsParams.width = wmtsParams.height = tileSize * 2;
                     } else {
@@ -707,11 +707,11 @@ jQuery(document).ready(function ($) {
                 }
             });
 
-            L.tileLayer.wtms = function (url, options) {
+             L.tileLayer.wtms = function (url, options) {
                 return new L.TileLayer.WMTS(url, options);
             };
             /* Fin / End
-             *---------------------------------------------------------*/
+            *---------------------------------------------------------*/
 
 
             if (urbaClic_options.showMap) {
@@ -809,14 +809,12 @@ jQuery(document).ready(function ($) {
 
             input.val(params.feature.properties.label);
 
-            var historyParams = {
-                input: input.val(),
-                adress: params.feature.properties.label,
-                feature: params.feature
-            }
 
-            if (push)
-                history.pushState(historyParams, '', initial_url + '#' + input.val());
+
+            if (push) {
+                history.pushState(null, null, initial_url + '#' + input.val());
+                console.log("pushState");
+            }
 
             //input.val(params.feature.properties.label);
 
@@ -863,54 +861,56 @@ jQuery(document).ready(function ($) {
                     marker_pos: marker_pos,
                     feature: feature
                 }
-                if (push)
-                    history.pushState(historyParams, '', initial_url + '#' + input.val());
-            }
-
-
-            if (cadastre_query) cadastre_query.abort();
-            var url = Cadastre_API + 'cadastre/geometrie';
-            var qparams = {
-                geom: JSON.stringify(feature)
-            };
-
-
-
-            cadastre_query = jQuery.getJSON(url, qparams, function (data) {
-                if (data.features.length) {
-                    if (layers.parcelle) map.removeLayer(layers.parcelle);
-                    var layer = L.geoJson(data, {
-                        onEachFeature: function (feature, layer) {
-                            var html = default_template(feature);
-                            layer.bindPopup(html);
-                        },
-                        style: {
-                            'className': 'parcelle'
-                        }
-                    }).addTo(map);
-                    map.fitBounds(layer.getBounds());
-                    layers.parcelle = layer;
-                    var parcelle_obj = layers.parcelle.getLayers()[0];
-
-                    showData(parcelle_obj.feature, parcelle_obj, marker_pos);
-                } else {
-                    console.info('aucune parcelle trouvée à ' + marker_pos.latlng.toString());
-                    loadClosest(marker_pos.latlng, current_citycode);
+                if (push){
+                   history.pushState(null, null, initial_url + '#' + input.val());
+                   console.log("pushState");
                 }
+           }
 
-            });
+
+           if (cadastre_query) cadastre_query.abort();
+           var url = Cadastre_API + 'cadastre/geometrie';
+           var qparams = {
+            geom: JSON.stringify(feature)
         };
 
-        var loadClosest = function (latlng, citycode) {
 
-            console.info('recherche plus proche parcelle sur commune ' + citycode);
 
-            if (cadastre_query) cadastre_query.abort();
+        cadastre_query = jQuery.getJSON(url, qparams, function (data) {
+            if (data.features.length) {
+                if (layers.parcelle) map.removeLayer(layers.parcelle);
+                var layer = L.geoJson(data, {
+                    onEachFeature: function (feature, layer) {
+                        var html = default_template(feature);
+                        layer.bindPopup(html);
+                    },
+                    style: {
+                        'className': 'parcelle'
+                    }
+                }).addTo(map);
+                map.fitBounds(layer.getBounds());
+                layers.parcelle = layer;
+                var parcelle_obj = layers.parcelle.getLayers()[0];
+
+                showData(parcelle_obj.feature, parcelle_obj, marker_pos);
+            } else {
+                console.info('aucune parcelle trouvée à ' + marker_pos.latlng.toString());
+                loadClosest(marker_pos.latlng, current_citycode);
+            }
+
+        });
+    };
+
+    var loadClosest = function (latlng, citycode) {
+
+        console.info('recherche plus proche parcelle sur commune ' + citycode);
+
+        if (cadastre_query) cadastre_query.abort();
 
             var delta = 0.0005; // en degres
             var bb = [
-                [latlng.lat - delta, latlng.lng - delta],
-                [latlng.lat + delta, latlng.lng + delta]
+            [latlng.lat - delta, latlng.lng - delta],
+            [latlng.lat + delta, latlng.lng + delta]
             ];
 
             var limit_geojson = L.rectangle(bb).toGeoJSON();
@@ -1009,8 +1009,8 @@ jQuery(document).ready(function ($) {
 
             map.fitBounds(layer.getBounds());
             var parcelleId = [
-                feature.properties.code_dep,
-                feature.properties.code_com
+            feature.properties.code_dep,
+            feature.properties.code_com
             ];
 
             if (feature.properties.code_arr != "000") {
@@ -1151,14 +1151,14 @@ jQuery(document).ready(function ($) {
         input.keydown(function (e) {
             setTimeout(autocomplete, 10);
         })
-            .focusin(function () {
-                clearTimeout(focusOff_timeout);
-                container.find('ul.urbaclic-autocomplete').slideDown();
-            })
-            .focusout(function () {
-                clearTimeout(focusOff_timeout);
-                focusOff_timeout = setTimeout(focusOff, 200);
-            });
+        .focusin(function () {
+            clearTimeout(focusOff_timeout);
+            container.find('ul.urbaclic-autocomplete').slideDown();
+        })
+        .focusout(function () {
+            clearTimeout(focusOff_timeout);
+            focusOff_timeout = setTimeout(focusOff, 200);
+        });
 
         container.on('click', 'ul.urbaclic-autocomplete [data-feature]', function (e) {
             e.preventDefault();
@@ -1262,25 +1262,25 @@ jQuery(document).ready(function ($) {
         Handlebars.registerHelper('ifCond', function (v1, operator, v2, options) {
 
             switch (operator) {
-            case '==':
+                case '==':
                 return (v1 == v2) ? options.fn(this) : options.inverse(this);
-            case '!=':
+                case '!=':
                 return (v1 != v2) ? options.fn(this) : options.inverse(this);
-            case '===':
+                case '===':
                 return (v1 === v2) ? options.fn(this) : options.inverse(this);
-            case '<':
+                case '<':
                 return (v1 < v2) ? options.fn(this) : options.inverse(this);
-            case '<=':
+                case '<=':
                 return (v1 <= v2) ? options.fn(this) : options.inverse(this);
-            case '>':
+                case '>':
                 return (v1 > v2) ? options.fn(this) : options.inverse(this);
-            case '>=':
+                case '>=':
                 return (v1 >= v2) ? options.fn(this) : options.inverse(this);
-            case '&&':
+                case '&&':
                 return (v1 && v2) ? options.fn(this) : options.inverse(this);
-            case '||':
+                case '||':
                 return (v1 || v2) ? options.fn(this) : options.inverse(this);
-            default:
+                default:
                 return options.inverse(this);
             }
         });
@@ -1288,25 +1288,25 @@ jQuery(document).ready(function ($) {
         Handlebars.registerHelper('ifCount', function (v1, operator, v2, options) {
             var v1 = v1.length;
             switch (operator) {
-            case '==':
+                case '==':
                 return (v1 == v2) ? options.fn(this) : options.inverse(this);
-            case '!=':
+                case '!=':
                 return (v1 != v2) ? options.fn(this) : options.inverse(this);
-            case '===':
+                case '===':
                 return (v1 === v2) ? options.fn(this) : options.inverse(this);
-            case '<':
+                case '<':
                 return (v1 < v2) ? options.fn(this) : options.inverse(this);
-            case '<=':
+                case '<=':
                 return (v1 <= v2) ? options.fn(this) : options.inverse(this);
-            case '>':
+                case '>':
                 return (v1 > v2) ? options.fn(this) : options.inverse(this);
-            case '>=':
+                case '>=':
                 return (v1 >= v2) ? options.fn(this) : options.inverse(this);
-            case '&&':
+                case '&&':
                 return (v1 && v2) ? options.fn(this) : options.inverse(this);
-            case '||':
+                case '||':
                 return (v1 || v2) ? options.fn(this) : options.inverse(this);
-            default:
+                default:
                 return options.inverse(this);
             }
         });
@@ -1461,7 +1461,7 @@ jQuery(document).ready(function ($) {
             }
 
             var EXCERPT_TOKEN = '<!--- --- -->',
-                DEFAULT_LENGTH = 128;
+            DEFAULT_LENGTH = 128;
 
             if (typeof length == 'undefined') {
                 length = DEFAULT_LENGTH;
