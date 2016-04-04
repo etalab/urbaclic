@@ -212,7 +212,10 @@ urbaClicUtils.urlify = function(text) {
                 return ul.find("a.focus").removeClass("focus"), 0 > autocomplete_pos ? autocomplete_hide() : (autocomplete_pos >= 0 && jQuery(ul.find("a")[autocomplete_pos]).addClass("focus"), 
                 void ul.animate({
                     scrollTop: jQuery(ul.find("a")[autocomplete_pos]).offset().top + ul.scrollTop() - ul.offset().top
-                }, 400));
+                }, {
+                    duration: 400,
+                    queue: !1
+                }));
             };
             autocomplete_open ? ("Esc" == val && autocomplete_hide(), "Enter" == val && initMarker(jQuery(ul.find("a")[autocomplete_pos]).data(), !0), 
             "Down" == val && autocomplete_pos < ul.find("a").length - 1 && autocomplete_pos++, 

@@ -550,7 +550,10 @@ jQuery(document).ready(function ($) {
 
                 ul.animate({
                     scrollTop: jQuery(ul.find('a')[autocomplete_pos]).offset().top + ul.scrollTop() - ul.offset().top
-                }, 400);
+                }, {
+                    duration: 400,
+                    queue: false
+                });
             }
 
             if (autocomplete_open) {

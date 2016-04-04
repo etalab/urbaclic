@@ -100,6 +100,7 @@
 #urbaclic ul.urbaclic-autocomplete a:focus,
 #urbaclic ul.urbaclic-autocomplete a.focus {
   background-color: #fff;
+  font-weight: bold;
 }
 #urbaclic ul.urbaclic-autocomplete a:after {
   content: '';
