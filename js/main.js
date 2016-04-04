@@ -602,7 +602,6 @@ jQuery(document).ready(function ($) {
                     if (data.features.length) {
                         ul.html(Templates.autocomplete(data)).slideDown();
 
-
                         var tbindex = 1000;
                         container.find('ul.urbaclic-autocomplete a').each(function () {
                             tbindex++;
@@ -804,7 +803,7 @@ jQuery(document).ready(function ($) {
         window.addEventListener('popstate', loadFromUrl);
 
 
-        var initMarker = function (params) {
+        var initMarker = function (params, push) {
 
             if (null == map) initMap();
 
@@ -816,7 +815,8 @@ jQuery(document).ready(function ($) {
                 feature: params.feature
             }
 
-            history.pushState(historyParams, '', initial_url + '#' + input.val());
+            if (push)
+                history.pushState(historyParams, '', initial_url + '#' + input.val());
 
             //input.val(params.feature.properties.label);
 
@@ -838,17 +838,17 @@ jQuery(document).ready(function ($) {
             layers.adresse = addAdressLayer(adresse_json);
             map.fitBounds(L.featureGroup([layers.adresse]).getBounds());
 
-            loadParcelle();
+            loadParcelle(false, push);
 
             layers.adresse.on('dragend', function (e) {
                 clearTimeout(loadParcelle_timeout);
-                loadParcelle_timeout = setTimeout(loadParcelle(true), 10);
+                loadParcelle_timeout = setTimeout(loadParcelle(true, true), 10);
             });
 
         }
 
 
-        var loadParcelle = function (fromDrag) {
+        var loadParcelle = function (fromDrag, push) {
 
 
             var feature = layers.adresse.toGeoJSON();
@@ -863,8 +863,8 @@ jQuery(document).ready(function ($) {
                     marker_pos: marker_pos,
                     feature: feature
                 }
-
-                history.pushState(historyParams, '', initial_url + '#' + input.val());
+                if (push)
+                    history.pushState(historyParams, '', initial_url + '#' + input.val());
             }
 
 
@@ -1162,7 +1162,7 @@ jQuery(document).ready(function ($) {
 
         container.on('click', 'ul.urbaclic-autocomplete [data-feature]', function (e) {
             e.preventDefault();
-            initMarker(jQuery(this).data());
+            initMarker(jQuery(this).data(), true);
         }).on('mouseover', 'ul.urbaclic-autocomplete', function (e) {
             clearTimeout(focusOff_timeout);
         }).on('focusin', 'ul.urbaclic-autocomplete *', function (e) {
