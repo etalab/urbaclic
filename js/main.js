@@ -455,6 +455,8 @@ jQuery(document).ready(function ($) {
             // parcelles: null
         }
 
+
+
         var backgroundLayers = {};
 
         var urbaClic_options = {
@@ -532,16 +534,59 @@ jQuery(document).ready(function ($) {
         }
 
 
-        var autocomplete = function () {
+        var autocomplete = function (loadFirst) {
 
+            var ul = container.find('ul.urbaclic-autocomplete');
 
             if (ban_query) ban_query.abort();
             input.prop('tabindex', 1000);
             var t = input.val();
 
+
+            if (t.search(/\d{1,2}(\.\d+)?,\s*\d{1,2}(\.\d+)/) == 0) {
+                console.log('load from latlng: ' + t);
+
+                var latlng = t.split(',');
+
+                if (!ul.length) {
+                    ul = jQuery('<ul class="urbaclic-autocomplete"></ul>').insertAfter(input).hide();
+                    ul.css('top', input.outerHeight() - 2);
+                }
+
+
+
+                var data = {
+                    query: "",
+                    type: "FeatureCollection",
+                    features: [{
+                            geometry: {
+                                type: "Point",
+                                coordinates: [latlng[1], latlng[0]]
+                            },
+                            properties: {
+                                label: t,
+                                type: "latlng"
+                            },
+                            type: "Feature"
+                        }
+
+                    ]
+                };
+                console.log(Templates.autocomplete(data));
+                ul.html(Templates.autocomplete(data)).slideDown();
+
+                if (loadFirst === true) {
+                    console.log('loadFirst');
+                    initMarker(container.find('ul.urbaclic-autocomplete a').first().data());
+                }
+
+
+                return false;
+            }
+
             if (t.length > 1) {
 
-                var ul = container.find('ul.urbaclic-autocomplete');
+
                 if (!ul.length) {
                     ul = jQuery('<ul class="urbaclic-autocomplete"></ul>').insertAfter(input).hide();
                     ul.css('top', input.outerHeight() - 2);
@@ -564,7 +609,12 @@ jQuery(document).ready(function ($) {
                             jQuery(this).prop('tabindex', tbindex);
                         });
 
-                        if (data.features.length == 1) {
+                        /*if (data.features.length == 1) {
+                            initMarker(container.find('ul.urbaclic-autocomplete a').first().data());
+                        }*/
+
+                        if (loadFirst === true) {
+                            console.log('loadFirst');
                             initMarker(container.find('ul.urbaclic-autocomplete a').first().data());
                         }
 
@@ -741,12 +791,34 @@ jQuery(document).ready(function ($) {
             return layer;
         };
 
+        var loadFromUrl = function () {
+            var url = decodeURIComponent(document.URL);
+            url = url.split('#');
+            if (url.length > 1) {
+                var t = url[1];
+                input.val(t);
+                autocomplete(true);
+            }
+        }
+
+        window.addEventListener('popstate', loadFromUrl);
+
 
         var initMarker = function (params) {
 
             if (null == map) initMap();
 
             input.val(params.feature.properties.label);
+
+            var historyParams = {
+                input: input.val(),
+                adress: params.feature.properties.label,
+                feature: params.feature
+            }
+
+            history.pushState(historyParams, '', initial_url + '#' + input.val());
+
+            //input.val(params.feature.properties.label);
 
             current_citycode = params.feature.properties.citycode;
 
@@ -770,19 +842,30 @@ jQuery(document).ready(function ($) {
 
             layers.adresse.on('dragend', function (e) {
                 clearTimeout(loadParcelle_timeout);
-                loadParcelle_timeout = setTimeout(loadParcelle, 10);
+                loadParcelle_timeout = setTimeout(loadParcelle(true), 10);
             });
 
         }
 
 
-        var loadParcelle = function () {
+        var loadParcelle = function (fromDrag) {
 
 
             var feature = layers.adresse.toGeoJSON();
             var marker_pos = {
                 latlng: layers.adresse.getLatLng()
             };
+
+            if (fromDrag == true) {
+                input.val(marker_pos.latlng.lat + ', ' + marker_pos.latlng.lng);
+                var historyParams = {
+                    input: input.val(),
+                    marker_pos: marker_pos,
+                    feature: feature
+                }
+
+                history.pushState(historyParams, '', initial_url + '#' + input.val());
+            }
 
 
             if (cadastre_query) cadastre_query.abort();
@@ -1057,6 +1140,14 @@ jQuery(document).ready(function ($) {
             container.find('ul.urbaclic-autocomplete').slideUp();
         }
 
+        var initial_url = decodeURIComponent(document.URL);
+        if (initial_url.split('#').length > 1) {
+            initial_url = initial_url.split('#')[0];
+            loadFromUrl();
+        } else {
+            autocomplete();
+        }
+
         input.keydown(function (e) {
             setTimeout(autocomplete, 10);
         })
@@ -1081,7 +1172,7 @@ jQuery(document).ready(function ($) {
             focusOff_timeout = setTimeout(focusOff, 200);
         })
 
-        autocomplete();
+
 
         _urbaclic.map = map;
         _urbaclic.loadParcelle = loadParcelle;
