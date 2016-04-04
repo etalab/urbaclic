@@ -416,7 +416,7 @@ jQuery(document).ready(function ($) {
         '<td class="servitude_id"><div class="map" data-servitudeid="{{id}}"></div>{{id}}</td>',
         '<td class="name">{{nom}}</td>',
         '<td class="type">{{type}}</td>',
-        '<td class="code_merimee">{{codeMerimee}}</td>',
+        '<td class="code_merimee"><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td>',
         '</tr>',
 
         '{{/each}}',
