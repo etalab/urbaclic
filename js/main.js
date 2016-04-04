@@ -222,7 +222,7 @@ jQuery(document).ready(function ($) {
         '{{#each features}}',
         '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">',
         '   {{marks properties.label ../query}}',
-        '   {{properties.label}}',
+        //'   {{properties.label}}',
         '   &nbsp;<i>{{_ properties.type}}</i>',
         '</a></li>',
         '{{/each}}',
@@ -361,7 +361,7 @@ jQuery(document).ready(function ($) {
         '</tr>',
         '{{#each servitudes}}',
         '<tr>',
-        '<td class="servitude_id">{{../id}}</td>',
+        '<td class="servitude_id"><div class="map" data-servitudeid="{{id}}"></div>{{id}}</td>',
         '<td class="name">{{nom}}</td>',
         '<td class="type">{{type}}</td>',
         '<td class="code_merimee">{{codeMerimee}}</td>',
@@ -531,6 +531,8 @@ jQuery(document).ready(function ($) {
             map.attributionControl.setPrefix('');
             map.layerController = L.control.layers([], []).addTo(map);
 
+            var first = true;
+
             for (var i in urbaClic_options.background_layers) {
                 var bl = urbaClic_options.background_layers[i];
 
@@ -541,6 +543,10 @@ jQuery(document).ready(function ($) {
                         var l = L.tileLayer(bl.url);
                         var t = bl.title;
                         _urbaclic.addBackground(t, l, i == 0);
+                        if (first) {
+                            l.addTo(map);
+                            first = false;
+                        }
 
                     } else {
                         try {
@@ -554,7 +560,7 @@ jQuery(document).ready(function ($) {
             }
 
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 
         }
@@ -739,7 +745,37 @@ jQuery(document).ready(function ($) {
 
         var getServitudesDetail = function () {
 
-            console.log(data);
+            var exemple = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[1.4412478,43.6082612],[1.4412321,43.608283],[1.4412157,43.6083198],[1.4412124,43.6083362],[1.4412129,43.6083494],[1.4412174,43.6083629],[1.4412262,43.6083779],[1.4412359,43.6083901],[1.4412502,43.6084037],[1.441268,43.6084169],[1.4412925,43.608431],[1.4413593,43.6084602],[1.4420934,43.6087783],[1.4421189,43.6087877],[1.4421488,43.6087948],[1.4421846,43.6088028],[1.4422125,43.6088065],[1.4422447,43.6088068],[1.4422806,43.6088074],[1.4423509,43.6088],[1.4423847,43.6087931],[1.4424154,43.6087853],[1.4424473,43.6087753],[1.4424598,43.6087687],[1.4424814,43.6087582],[1.4425016,43.608747],[1.4425282,43.6087283],[1.4425585,43.608706],[1.4425849,43.6086784],[1.4426028,43.6086577],[1.4426164,43.6086344],[1.4426286,43.60861],[1.4426393,43.6085774],[1.4426439,43.6085546],[1.4426422,43.6085276],[1.442637,43.6084934],[1.4426268,43.6084577],[1.4426137,43.608433],[1.4425875,43.6083981],[1.4425643,43.6083729],[1.4425318,43.6083446],[1.4424997,43.6083221],[1.4424767,43.60831],[1.4424701,43.6083065],[1.442414,43.6082802],[1.4424231,43.6082674],[1.4423022,43.6082102],[1.4422896,43.6082248],[1.4422332,43.6082],[1.4416873,43.6079607],[1.4416532,43.6079493],[1.4416239,43.6079428],[1.4415958,43.6079408],[1.4415692,43.6079431],[1.4415419,43.6079481],[1.4415214,43.6079563],[1.4414887,43.6079721],[1.4414636,43.6079894],[1.441466,43.6080011],[1.4414649,43.6080026],[1.4414508,43.6080209],[1.4414605,43.6080258],[1.4414147,43.6080792],[1.4414018,43.6080729],[1.4413164,43.6081766],[1.4413231,43.6081806],[1.4412769,43.6082392],[1.4412661,43.6082353],[1.4412478,43.6082612]]]]},"properties":{"test":"test"}}]}';
+
+            container.find('.map[data-servitudeid]').each(function () {
+                var map_container = jQuery(this);
+                var servitude_id = map_container.data('servitudeid');
+                var options = jQuery.extend(urbaClic_options.leaflet_map_options, {
+                    zoomControl: false
+                });
+
+                var servitudes_map = L.map(map_container[0], options).setView([46.6795944656402, 2.197265625], 4);
+                servitudes_map.attributionControl.setPrefix('');
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(servitudes_map);
+
+                var data = JSON.parse(exemple);
+
+                var layer = L.geoJson(data, {
+                    onEachFeature: function (feature, layer) {
+                        var html = default_template(feature);
+                        layer.bindPopup(html);
+                    },
+                    style: {
+                        'className': 'parcelle'
+                    }
+                });
+                layer.addTo(servitudes_map);
+                servitudes_map.fitBounds(layer.getBounds());
+
+
+            });
+
+
         }
 
         var showData = function (feature, layer, evt) {
@@ -804,7 +840,6 @@ jQuery(document).ready(function ($) {
 
             //load_servitudes
             if (urbaClic_options.getservitude) {
-                //****************************************************************************************
 
                 var geom = layer.toGeoJSON();
                 geom = geom.geometry;
@@ -829,10 +864,9 @@ jQuery(document).ready(function ($) {
                 });
 
 
-                //****************************************************************************************
             }
 
-            //load_servitudes
+            //load_plu
             if (urbaClic_options.getPlu) {
                 //****************************************************************************************
 
@@ -858,7 +892,7 @@ jQuery(document).ready(function ($) {
                 });*/
 
                 var plu_data = {
-                    'LIBELLE': 'Espace boisé classé',
+                    'LIBELLE': 'Espace urbanisé',
                     'TXT': 'Description'
 
                 };

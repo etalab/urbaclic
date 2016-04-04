@@ -57,7 +57,7 @@
 #urbaclic .urbaclic-autocomplete {
   display: inline-block;
   position: relative;
-  z-index: 1000;
+  z-index: 5000;
 }
 #urbaclic ul.urbaclic-autocomplete {
   list-style: none;
@@ -113,6 +113,7 @@
   content: "";
   display: block;
   clear: both;
+  padding-bottom: 38px;
 }
 .urbaclic-map {
   min-height: 350px;
@@ -171,4 +172,14 @@
 .urbaclic-data ul {
   list-style: none;
   margin: 0;
+}
+.urbaclic-data .servitudes .map {
+  min-height: 200px;
+  min-width: 324px;
+}
+.urbaclic-data .servitudes .map svg {
+  min-height: none !important;
+  min-width: none !important;
+  max-height: none !important;
+  max-width: none !important;
 }
