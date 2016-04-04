@@ -252,7 +252,7 @@ urbaClicUtils.getModelLayer = function (m, ign_key) {
         var layer = new L.TileLayer.WMTS('http://wxs.ign.fr/' + ign_key + '/geoportail/wmts', options);
 
         return {
-            title: title,
+            title: i18n.t(valuetitle),
             layer: layer
         };
     }

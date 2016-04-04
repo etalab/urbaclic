@@ -6,6 +6,9 @@
     "village": "village",
     "housenumber": "adresse",
 
+    "IGN:CADASTRALPARCELS.PARCELS": "Géoportail - Parcelles cadastrales",
+    "IGN:ORTHOIMAGERY.ORTHOPHOTOS": "Géoportail - Orthophotographies",
+
 
     ".": "."
 }
