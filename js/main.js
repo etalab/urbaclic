@@ -234,14 +234,22 @@ urbaClicUtils.getModelLayer = function (m, ign_key) {
             };
         }
 
-        var layer = new L.TileLayer.WMTS('http://wxs.ign.fr/' + ign_key + '/geoportail/wmts', {
+        var options = {
             layer: m,
             style: 'normal',
             tilematrixSet: "PM",
             matrixIds: matrixIds3857,
             format: 'image/jpeg',
             attribution: "&copy; <a href='http://www.ign.fr'>IGN</a>"
-        });
+        };
+
+
+        if (m == 'CADASTRALPARCELS.PARCELS') {
+            options.format = 'image/png';
+            options.style = 'bdparcellaire';
+        }
+
+        var layer = new L.TileLayer.WMTS('http://wxs.ign.fr/' + ign_key + '/geoportail/wmts', options);
 
         return {
             title: title,
