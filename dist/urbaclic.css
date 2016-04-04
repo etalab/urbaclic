@@ -97,7 +97,8 @@
   background-color: #5cb85c;
 }
 #urbaclic ul.urbaclic-autocomplete a:hover,
-#urbaclic ul.urbaclic-autocomplete a:focus {
+#urbaclic ul.urbaclic-autocomplete a:focus,
+#urbaclic ul.urbaclic-autocomplete a.focus {
   background-color: #fff;
 }
 #urbaclic ul.urbaclic-autocomplete a:after {

@@ -479,6 +479,9 @@ jQuery(document).ready(function ($) {
         var focusOff_timeout = null;
         var loadParcelle_timeout = null;
 
+        var autocomplete_pos = -1;
+        var autocomplete_open = false;
+
         var current_parcelle = {
             loadings: []
         };
@@ -532,8 +535,76 @@ jQuery(document).ready(function ($) {
 
         }
 
+        var autocomplete_press = function (val) {
+            //console.log(val);
+            var ul = container.find('ul.urbaclic-autocomplete');
+
+            var updateStyle = function () {
+                ul.find('a.focus').removeClass('focus');
+
+                if (autocomplete_pos < 0)
+                    return autocomplete_hide();
+
+                if (autocomplete_pos >= 0)
+                    jQuery(ul.find('a')[autocomplete_pos]).addClass('focus');
+
+                ul.animate({
+                    scrollTop: jQuery(ul.find('a')[autocomplete_pos]).offset().top + ul.scrollTop() - ul.offset().top
+                }, 400);
+            }
+
+            if (autocomplete_open) {
+
+                if (val == 'Esc') {
+                    autocomplete_hide();
+                }
+
+                if (val == 'Enter') {
+                    initMarker(jQuery(ul.find('a')[autocomplete_pos]).data(), true);
+                }
+
+                if (val == 'Down') {
+                    if (autocomplete_pos < ul.find('a').length - 1)
+                        autocomplete_pos++;
+
+                }
+                if (val == 'Up') autocomplete_pos--;
+
+                if (val == 'Down' || val == 'Up') updateStyle();
+            } else {
+                if (val == 'Down') {
+                    autocomplete_show();
+                    autocomplete_pos = 0;
+                    updateStyle();
+                }
+            }
+
+        };
+
+        var autocomplete_show = function () {
+            console.log('show');
+            autocomplete_open = true;
+            autocomplete_pos = -1;
+            clearTimeout(focusOff_timeout);
+            container.find('ul.urbaclic-autocomplete').slideDown();
+        };
+
+
+        var autocomplete_hide = function () {
+            console.log('hide');
+            autocomplete_open = false;
+            autocomplete_pos = -1;
+            container.find('ul.urbaclic-autocomplete a.focus').removeClass('focus');
+            clearTimeout(focusOff_timeout);
+            focusOff_timeout = setTimeout(function () {
+                container.find('ul.urbaclic-autocomplete').slideUp();
+            }, 200);
+
+        };
 
         var autocomplete = function (loadFirst) {
+
+            autocomplete_pos = -1;
 
             var ul = container.find('ul.urbaclic-autocomplete');
 
@@ -600,11 +671,11 @@ jQuery(document).ready(function ($) {
                     if (data.features.length) {
                         ul.html(Templates.autocomplete(data)).slideDown();
 
-                        var tbindex = 1000;
+                        /*var tbindex = 1000;
                         container.find('ul.urbaclic-autocomplete a').each(function () {
                             tbindex++;
                             jQuery(this).prop('tabindex', tbindex);
-                        });
+                        });*/
 
                         /*if (data.features.length == 1) {
                             initMarker(container.find('ul.urbaclic-autocomplete a').first().data());
@@ -800,8 +871,15 @@ jQuery(document).ready(function ($) {
 
         window.addEventListener('popstate', loadFromUrl);
 
+        var pushHistory = function () {
+            history.pushState(null, null, initial_url + '#' + encodeURIComponent(input.val().replace(/\s/g, "+")));
+            console.log("pushState " + input.val());
+        }
+
 
         var initMarker = function (params, push) {
+
+
 
             if (null == map) initMap();
 
@@ -809,10 +887,7 @@ jQuery(document).ready(function ($) {
 
 
 
-            if (push) {
-                history.pushState(null, null, initial_url + '#' + input.val());
-                console.log("pushState " + input.val());
-            }
+            if (push) pushHistory();
 
             //input.val(params.feature.properties.label);
 
@@ -823,7 +898,7 @@ jQuery(document).ready(function ($) {
                 latlng: L.latLng(params.feature.geometry.coordinates[1], params.feature.geometry.coordinates[0])
             };
 
-            focusOff();
+            autocomplete_hide();
             if (zoom_timeout) clearTimeout(zoom_timeout);
 
             var adresse_json = {
@@ -859,10 +934,7 @@ jQuery(document).ready(function ($) {
                     marker_pos: marker_pos,
                     feature: feature
                 }
-                if (push) {
-                    history.pushState(null, null, initial_url + '#' + input.val());
-                    console.log("pushState " + input.val());
-                }
+                if (push) pushHistory();
             }
 
 
@@ -1134,9 +1206,6 @@ jQuery(document).ready(function ($) {
         }
 
 
-        var focusOff = function () {
-            container.find('ul.urbaclic-autocomplete').slideUp();
-        }
 
         var initial_url = decodeURIComponent(document.URL);
         if (initial_url.split('#').length > 1) {
@@ -1147,16 +1216,18 @@ jQuery(document).ready(function ($) {
         }
 
         input.keydown(function (e) {
+
+            var c = e.keyCode;
+
+            if (c === 13) return autocomplete_press('Enter');
+            if (c === 27) return autocomplete_press('Esc');
+            if (c === 38) return autocomplete_press('Up');
+            if (c === 40) return autocomplete_press('Down');
+
             setTimeout(autocomplete, 10);
         })
-            .focusin(function () {
-                clearTimeout(focusOff_timeout);
-                container.find('ul.urbaclic-autocomplete').slideDown();
-            })
-            .focusout(function () {
-                clearTimeout(focusOff_timeout);
-                focusOff_timeout = setTimeout(focusOff, 200);
-            });
+            .focusin(autocomplete_show)
+            .focusout(autocomplete_hide);
 
         container.on('click', 'ul.urbaclic-autocomplete [data-feature]', function (e) {
             e.preventDefault();
