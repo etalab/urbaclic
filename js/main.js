@@ -483,7 +483,7 @@ jQuery(document).ready(function ($) {
 
         urbaClic_options = jQuery.extend(urbaClic_options, options);
 
-        console.log(urbaClic_options);
+        //console.log(urbaClic_options);
 
         var autocomplete_params = {};
         for (var i in urbaClic_options) {
