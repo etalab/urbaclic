@@ -222,6 +222,7 @@ jQuery(document).ready(function ($) {
         '{{#each features}}',
         '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">',
         '   {{marks properties.label ../query}}',
+        '   {{properties.label}}',
         '   &nbsp;<i>{{_ properties.type}}</i>',
         '</a></li>',
         '{{/each}}',
@@ -501,6 +502,7 @@ jQuery(document).ready(function ($) {
                     if (data.features.length) {
                         ul.html(Templates.autocomplete(data)).slideDown();
 
+
                         var tbindex = 1000;
                         container.find('ul.urbaclic-autocomplete a').each(function () {
                             tbindex++;
@@ -735,6 +737,11 @@ jQuery(document).ready(function ($) {
 
         };
 
+        var getServitudesDetail = function () {
+
+            console.log(data);
+        }
+
         var showData = function (feature, layer, evt) {
 
             map.fitBounds(layer.getBounds());
@@ -817,6 +824,7 @@ jQuery(document).ready(function ($) {
                     success: function (data) {
                         current_parcelle.data.servitudes = data;
                         jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
+                        getServitudesDetail();
                     }
                 });
 
@@ -1051,13 +1059,15 @@ jQuery(document).ready(function ($) {
 
         Handlebars.registerHelper('marks', function (text, key) {
             var keys = key.trim().split(' ');
+
             for (var i in keys) {
                 key = keys[i];
                 var match = text.match(new RegExp(key, "gi"));
                 var uniqueMatch = [];
-                jQuery.each(match, function (i, el) {
-                    if (jQuery.inArray(el, uniqueMatch) === -1) uniqueMatch.push(el);
-                });
+                if (match != null)
+                    jQuery.each(match, function (i, el) {
+                        if (jQuery.inArray(el, uniqueMatch) === -1) uniqueMatch.push(el);
+                    });
 
                 for (var i in uniqueMatch) {
                     text = text.replace(new RegExp(uniqueMatch[i], "g"), '[** ' + uniqueMatch[i] + ' **]')
