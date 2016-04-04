@@ -209,6 +209,50 @@ urbaClicUtils.baseLayers = {
 };
 
 
+urbaClicUtils.IGNLayersTitles = {
+
+};
+
+
+urbaClicUtils.getModelLayer = function (m, ign_key) {
+    var title = m;
+
+    bl = urbaClicUtils.baseLayers[m];
+    if (bl) return {
+        title: bl.title,
+        layer: new L.tileLayer(bl.url)
+    };
+
+    if (m.search(/^IGN:/) === 0) {
+        m = m.replace(/^IGN:/, '');
+
+        var matrixIds3857 = new Array(22);
+        for (var i = 0; i < 22; i++) {
+            matrixIds3857[i] = {
+                identifier: "" + i,
+                topLeftCorner: new L.LatLng(20037508, -20037508)
+            };
+        }
+
+        var layer = new L.TileLayer.WMTS('http://wxs.ign.fr/' + ign_key + '/geoportail/wmts', {
+            layer: m,
+            style: 'normal',
+            tilematrixSet: "PM",
+            matrixIds: matrixIds3857,
+            format: 'image/jpeg',
+            attribution: "&copy; <a href='http://www.ign.fr'>IGN</a>"
+        });
+
+        return {
+            title: title,
+            layer: layer
+        };
+    }
+
+    console.log('baselayer model not found: ' + m);
+    return false;
+}
+
 jQuery(document).ready(function ($) {
 
     var Templates = {};
@@ -415,6 +459,7 @@ jQuery(document).ready(function ($) {
             sharelink: false,
             autocomplete_limit: 50,
             leaflet_map_options: {},
+            ign_key: null,
             background_layers: ['OpenStreetMap', 'MapQuest_Open', 'OpenTopoMap']
         };
 
@@ -429,6 +474,8 @@ jQuery(document).ready(function ($) {
         };
 
         urbaClic_options = jQuery.extend(urbaClic_options, options);
+
+        console.log(urbaClic_options);
 
         var autocomplete_params = {};
         for (var i in urbaClic_options) {
@@ -526,6 +573,90 @@ jQuery(document).ready(function ($) {
 
         var initMap = function () {
 
+            /*
+             * Copyright (c) 2008-2014 Institut National de l'Information Geographique et Forestiere (IGN) France.
+             * Released under the BSD license.
+             */
+            /*---------------------------------------------------------
+             *Nouvelle classe de Leaflet pour supporter les flux WMTS (basÃ©e sur L.TileLayer.WMS)
+             *New Leaflet's class to support WMTS (based on L.TileLayer.WMS)
+             */
+            L.TileLayer.WMTS = L.TileLayer.extend({
+
+                defaultWmtsParams: {
+                    service: 'WMTS',
+                    request: 'GetTile',
+                    version: '1.0.0',
+                    layer: '',
+                    style: '',
+                    tilematrixSet: '',
+                    format: 'image/jpeg'
+                },
+
+                initialize: function (url, options) { // (String, Object)
+                    this._url = url;
+                    var wmtsParams = L.extend({}, this.defaultWmtsParams),
+                        tileSize = options.tileSize || this.options.tileSize;
+                    if (options.detectRetina && L.Browser.retina) {
+                        wmtsParams.width = wmtsParams.height = tileSize * 2;
+                    } else {
+                        wmtsParams.width = wmtsParams.height = tileSize;
+                    }
+                    for (var i in options) {
+                        // all keys that are not TileLayer options go to WMTS params
+                        if (!this.options.hasOwnProperty(i) && i != "matrixIds") {
+                            wmtsParams[i] = options[i];
+                        }
+                    }
+                    this.wmtsParams = wmtsParams;
+                    this.matrixIds = options.matrixIds;
+                    L.setOptions(this, options);
+                },
+
+                onAdd: function (map) {
+                    L.TileLayer.prototype.onAdd.call(this, map);
+                },
+
+                getTileUrl: function (tilePoint, zoom) { // (Point, Number) -> String
+                    var map = this._map;
+                    crs = map.options.crs;
+                    tileSize = this.options.tileSize;
+                    nwPoint = tilePoint.multiplyBy(tileSize);
+                    //+/-1 pour Ãªtre dans la tuile
+                    nwPoint.x += 1;
+                    nwPoint.y -= 1;
+                    sePoint = nwPoint.add(new L.Point(tileSize, tileSize));
+                    nw = crs.project(map.unproject(nwPoint, zoom));
+                    se = crs.project(map.unproject(sePoint, zoom));
+                    tilewidth = se.x - nw.x;
+                    zoom = map.getZoom();
+                    ident = this.matrixIds[zoom].identifier;
+                    X0 = this.matrixIds[zoom].topLeftCorner.lng;
+                    Y0 = this.matrixIds[zoom].topLeftCorner.lat;
+                    tilecol = Math.floor((nw.x - X0) / tilewidth);
+                    tilerow = -Math.floor((nw.y - Y0) / tilewidth);
+                    url = L.Util.template(this._url, {
+                        s: this._getSubdomain(tilePoint)
+                    });
+                    return url + L.Util.getParamString(this.wmtsParams, url) + "&tilematrix=" + ident + "&tilerow=" + tilerow + "&tilecol=" + tilecol;
+                },
+
+                setParams: function (params, noRedraw) {
+                    L.extend(this.wmtsParams, params);
+                    if (!noRedraw) {
+                        this.redraw();
+                    }
+                    return this;
+                }
+            });
+
+            L.tileLayer.wtms = function (url, options) {
+                return new L.TileLayer.WMTS(url, options);
+            };
+            /* Fin / End
+             *---------------------------------------------------------*/
+
+
             if (urbaClic_options.showMap) {
                 if (!jQuery('.urbaclic-map').length) jQuery('<div class="urbaclic-map"></div>').appendTo(container);
 
@@ -539,17 +670,15 @@ jQuery(document).ready(function ($) {
                     var bl = urbaClic_options.background_layers[i];
 
                     if (typeof bl == 'string') {
-                        if (urbaClicUtils.baseLayers[bl] != undefined) {
-                            bl = urbaClicUtils.baseLayers[bl];
+                        var l = urbaClicUtils.getModelLayer(bl, urbaClic_options.ign_key);
 
-                            var l = L.tileLayer(bl.url);
-                            var t = bl.title;
-                            _urbaclic.addBackground(t, l, i == 0);
+                        if (l) {
+
+                            _urbaclic.addBackground(l.title, l.layer, i == 0);
                             if (first) {
-                                l.addTo(map);
+                                l.layer.addTo(map);
                                 first = false;
                             }
-
                         } else {
                             try {
                                 bl = eval(bl);
