@@ -259,15 +259,24 @@ jQuery(document).ready(function ($) {
 
 
     Templates.parcelleData = [
-        '<p class="latlng">position markeur: {{latlng.lat}}, {{latlng.lng}}</p>',
 
         '{{#ifCond adresse "!=" null}}',
+
+        '<div class="position">',
+        '<h4>position</h4>',
+
+        '<table>',
+        '<tr>',
+        '<th class="position">coordonnées marqueur</th>',
+        '<th class="adresse">Adresse estimée</th>',
+        '</tr>',
+        '<tr>',
+        '<td class="position">{{latlng.lat}}, {{latlng.lng}}</td>',
         '{{#with adresse}}',
-        '<div class="adresse">',
-        '<h4>adresse estimée</h4>',
-        '<ul>',
-        '<li>{{name}} {{postcode}} {{city}}</li>',
-        '</ul>',
+        '<td class="adresse">{{name}} {{postcode}} {{city}}</td>',
+        '</tr>',
+        '</table>',
+
         '</div>',
         '{{/with}}',
         '{{/ifCond}}',
@@ -276,18 +285,34 @@ jQuery(document).ready(function ($) {
         '{{#with cadastre}}',
         '<div class="cadastre">',
         '<h4>cadastre</h4>',
-        '<ul>',
-        '<li class="parcelle_id">ID: {{../parcelle_id}}</li>',
-        '<li class="code_dep">code_dep: {{code_dep}}</li>',
-        '<li class="code_com">code_com: {{code_com}}</li>',
-        '<li class="nom_com">nom_com: {{nom_com}}</li>',
-        '<li class="code_arr">code_arr: {{code_arr}}</li>',
-        '<li class="com_abs">com_abs: {{com_abs}}</li>',
-        '<li class="feuille">feuille: {{feuille}}</li>',
-        '<li class="section">section: {{section}}</li>',
-        '<li class="numero">numero: {{numero}}</li>',
-        '<li class="surface_parcelle">surface: {{round surface_parcelle}}m²</li>',
-        '</ul>',
+
+        '<table>',
+        '<tr>',
+        '<th class="parcelle_id">ID</th>',
+        '<th class="code_dep">code_dep</th>',
+        '<th class="code_com">code_com</th>',
+        '<th class="nom_com">nom_com</th>',
+        '<th class="code_arr">code_arr</th>',
+        '<th class="com_abs">com_abs</th>',
+        '<th class="feuille">feuille</th>',
+        '<th class="section">section</th>',
+        '<th class="numero">numero</th>',
+        '<th class="surface_parcelle">surface parcelle</th>',
+        '</tr>',
+        '<tr>',
+        '<td class="parcelle_id">{{../parcelle_id}}</td>',
+        '<td class="code_dep">{{code_dep}}</td>',
+        '<td class="code_com">{{code_com}}</td>',
+        '<td class="nom_com">{{nom_com}}</td>',
+        '<td class="code_arr">{{code_arr}}</td>',
+        '<td class="com_abs">{{com_abs}}</td>',
+        '<td class="feuille">{{feuille}}</td>',
+        '<td class="section">{{section}}</td>',
+        '<td class="numero">{{numero}}</td>',
+        '<td class="surface_parcelle">{{round surface_parcelle}}m²</td>',
+        '</tr>',
+        '</table>',
+
         '</div>',
         '{{/with}}',
         '{{/ifCond}}',
@@ -299,10 +324,18 @@ jQuery(document).ready(function ($) {
         '{{#with plu}}',
         '<div class="plu">',
         '<h4>PLU</h4>',
-        '<ul>',
-        '<li>Libellé:{{LIBELLE}}</li>',
-        '<p>{{TXT}}</p>',
-        '</ul>',
+
+        '<table>',
+        '<tr>',
+        '<th class="libelle">Libellé</th>',
+        '<th class="txt">Texte</th>',
+        '</tr>',
+        '<tr>',
+        '<td class="libelle">{{LIBELLE}}</td>',
+        '<td class="txt">{{TXT}}</td>',
+        '</tr>',
+        '</table>',
+
         '</div>',
         '{{/with}}',
         '{{/ifCond}}',
@@ -310,14 +343,34 @@ jQuery(document).ready(function ($) {
         '{{#ifCond servitudes "!=" null}}',
         '<div class="servitudes">',
         '<h4>servitudes</h4>',
-        '<ul>',
+
         '{{#ifCount servitudes "==" 0}}',
+        '<ul>',
         '<li>aucune</li>',
-        '{{/ifCount}}',
-        '{{#each servitudes}}',
-        '<li>{{type}} {{nom}} id:{{id}}</li>',
-        '{{/each}}',
         '</ul>',
+        '{{else}}',
+
+        '<p>La parcelle est concernée par {{count servitudes}} servitudes</p>',
+        '<table>',
+        '<tr>',
+        '<th class="servitude_id">ID</th>',
+        '<th class="name">nom</th>',
+        '<th class="type">type</th>',
+        '<th class="code_merimee">Code Mérimée</th>',
+        '</tr>',
+        '{{#each servitudes}}',
+        '<tr>',
+        '<td class="servitude_id">{{../id}}</td>',
+        '<td class="name">{{nom}}</td>',
+        '<td class="type">{{type}}</td>',
+        '<td class="code_merimee">{{codeMerimee}}</td>',
+        '</tr>',
+
+        '{{/each}}',
+        '</table>',
+        '</ul>',
+
+        '{{/ifCount}}',
         '</div>',
         '{{/ifCond}}'
 
@@ -482,6 +535,11 @@ jQuery(document).ready(function ($) {
                 if (typeof bl == 'string') {
                     if (urbaClicUtils.baseLayers[bl] != undefined) {
                         bl = urbaClicUtils.baseLayers[bl];
+
+                        var l = L.tileLayer(bl.url);
+                        var t = bl.title;
+                        _urbaclic.addBackground(t, l, i == 0);
+
                     } else {
                         try {
                             bl = eval(bl);
@@ -490,9 +548,7 @@ jQuery(document).ready(function ($) {
                         }
                     }
                 }
-                var l = L.tileLayer(bl.url);
-                var t = bl.title;
-                _urbaclic.addBackground(t, l, i == 0);
+
             }
 
 
@@ -560,7 +616,7 @@ jQuery(document).ready(function ($) {
 
             loadParcelle();
 
-            layers.adresse.on('drag', function (e) {
+            layers.adresse.on('dragend', function (e) {
                 clearTimeout(loadParcelle_timeout);
                 loadParcelle_timeout = setTimeout(loadParcelle, 10);
             });
@@ -1054,6 +1110,11 @@ jQuery(document).ready(function ($) {
         Handlebars.registerHelper('round', function (passedString) {
             return Math.round(parseFloat(passedString));
         });
+
+        Handlebars.registerHelper('count', function (passedString) {
+            return passedString.length;
+        });
+
 
         Handlebars.registerHelper('truncate', function (str, len) {
             if (str && str.length > len && str.length > 0) {
