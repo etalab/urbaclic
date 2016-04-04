@@ -524,44 +524,48 @@ jQuery(document).ready(function ($) {
             }
         }
 
-        if (urbaClic_options.showMap) {
-            if (!jQuery('.urbaclic-map').length) jQuery('<div class="urbaclic-map"></div>').appendTo(container);
+        var initMap = function () {
 
-            map = L.map(jQuery('.urbaclic-map')[0], urbaClic_options.leaflet_map_options).setView([46.6795944656402, 2.197265625], 4);
-            map.attributionControl.setPrefix('');
-            map.layerController = L.control.layers([], []).addTo(map);
+            if (urbaClic_options.showMap) {
+                if (!jQuery('.urbaclic-map').length) jQuery('<div class="urbaclic-map"></div>').appendTo(container);
 
-            var first = true;
+                map = L.map(jQuery('.urbaclic-map')[0], urbaClic_options.leaflet_map_options).setView([46.6795944656402, 2.197265625], 4);
+                map.attributionControl.setPrefix('');
+                map.layerController = L.control.layers([], []).addTo(map);
 
-            for (var i in urbaClic_options.background_layers) {
-                var bl = urbaClic_options.background_layers[i];
+                var first = true;
 
-                if (typeof bl == 'string') {
-                    if (urbaClicUtils.baseLayers[bl] != undefined) {
-                        bl = urbaClicUtils.baseLayers[bl];
+                for (var i in urbaClic_options.background_layers) {
+                    var bl = urbaClic_options.background_layers[i];
 
-                        var l = L.tileLayer(bl.url);
-                        var t = bl.title;
-                        _urbaclic.addBackground(t, l, i == 0);
-                        if (first) {
-                            l.addTo(map);
-                            first = false;
-                        }
+                    if (typeof bl == 'string') {
+                        if (urbaClicUtils.baseLayers[bl] != undefined) {
+                            bl = urbaClicUtils.baseLayers[bl];
 
-                    } else {
-                        try {
-                            bl = eval(bl);
-                        } catch (err) {
-                            console.log(err.message);
+                            var l = L.tileLayer(bl.url);
+                            var t = bl.title;
+                            _urbaclic.addBackground(t, l, i == 0);
+                            if (first) {
+                                l.addTo(map);
+                                first = false;
+                            }
+
+                        } else {
+                            try {
+                                bl = eval(bl);
+                            } catch (err) {
+                                console.log(err.message);
+                            }
                         }
                     }
+
                 }
 
+
+                // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+
             }
-
-
-            // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
 
         }
 
@@ -602,6 +606,9 @@ jQuery(document).ready(function ($) {
 
 
         var initMarker = function (params) {
+
+            if (null == map) initMap();
+
             input.val(params.feature.properties.label);
 
             current_citycode = params.feature.properties.citycode;
