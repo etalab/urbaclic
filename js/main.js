@@ -863,7 +863,7 @@ jQuery(document).ready(function ($) {
         };
 
         var loadFromUrl = function () {
-            var url = decodeURIComponent(document.URL);
+            var url = decodeURIComponent(document.URL).replace(/\+/g, ' ');
             url = url.split('#');
             if (url.length > 1) {
                 var t = url[1];

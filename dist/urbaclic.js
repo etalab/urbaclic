@@ -345,7 +345,7 @@ urbaClicUtils.urlify = function(text) {
             }).addTo(map);
             return layers.adresse = layer, updateLayerController(), layer;
         }, loadFromUrl = function() {
-            var url = decodeURIComponent(document.URL);
+            var url = decodeURIComponent(document.URL).replace(/\+/g, " ");
             if (url = url.split("#"), url.length > 1) {
                 var t = url[1];
                 input.val(t), autocomplete(!0);
