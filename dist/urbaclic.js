@@ -560,7 +560,7 @@ urbaClicUtils.urlify = function(text) {
             }
         }, initial_url = decodeURIComponent(document.URL);
         return initial_url.split("#").length > 1 ? (initial_url = initial_url.split("#")[0], 
-        setTimeout(loadFromUrl, 100)) : autocomplete(), input.keydown(function(e) {
+        setTimeout(loadFromUrl, 500)) : autocomplete(), input.keydown(function(e) {
             var c = e.keyCode;
             return 13 === c ? autocomplete_press("Enter") : 27 === c ? autocomplete_press("Esc") : 38 === c ? autocomplete_press("Up") : 40 === c ? autocomplete_press("Down") : void setTimeout(autocomplete, 10);
         }).focusin(autocomplete_show).focusout(autocomplete_hide), jQuery("#urbaclic-autocomplete").on("click", ".urbaclic-autocomplete [data-feature]", function(e) {

@@ -1083,8 +1083,6 @@ jQuery(document).ready(function ($) {
             current_background = modelLayerKey[current_background];
 
 
-
-
             container.find('.map[data-servitudeid]').each(function () {
 
                 if (layers.servitudes == null) {
@@ -1331,7 +1329,7 @@ jQuery(document).ready(function ($) {
         var initial_url = decodeURIComponent(document.URL);
         if (initial_url.split('#').length > 1) {
             initial_url = initial_url.split('#')[0];
-            setTimeout(loadFromUrl, 100);
+            setTimeout(loadFromUrl, 500);
         } else {
             autocomplete();
         }
