@@ -54,7 +54,7 @@
   padding: 6px 12px;
   transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s;
 }
-#urbaclic .urbaclic-autocomplete {
+#urbaclic #urbaclic-autocomplete {
   display: inline-block;
   position: relative;
   z-index: 5000;
@@ -119,12 +119,6 @@
 }
 .urbaclic-map {
   min-height: 350px;
-  /* path.parcelle  {
-        //fill: none;
-        stroke-opacity: 0.8;
-        stroke-width: 1;
-        fill-opacity:0.5;
-    }*/
 }
 .urbaclic-map svg {
   min-height: none !important;
@@ -132,21 +126,16 @@
   max-height: none !important;
   max-width: none !important;
 }
-.urbaclic-map path.ban {
-  fill-opacity: 1;
+.urbaclic-map path.parcelle {
+  fill-opacity: 0.2;
   stroke-opacity: 1;
-  stroke-width: 2;
-}
-.urbaclic-map path.parcelles {
-  stroke-opacity: 0.8;
   stroke-width: 1;
-  fill-opacity: 0.25;
 }
-.urbaclic-map path.parcelles:hover {
-  fill-opacity: 0.85;
-}
-.urbaclic-map g.active .parcelles {
-  fill-opacity: 0.5;
+.urbaclic-map path.ban {
+  fill: none;
+  stroke-opacity: 0.5;
+  stroke-width: 1;
+  stroke: #000;
 }
 .urbaclic-data > div > table {
   width: 100%;
@@ -184,4 +173,18 @@
   min-width: none !important;
   max-height: none !important;
   max-width: none !important;
+}
+.urbaclic-data .servitudes .map path.assiette {
+  fill: #f00;
+  fill-opacity: 0.2;
+  stroke: #f00;
+  stroke-opacity: 0.75;
+  stroke-width: 0.5;
+}
+.urbaclic-data .servitudes .map path.generateur {
+  stroke-opacity: 1;
+  stroke-width: 1;
+  fill-opacity: 0.75;
+  fill: #f00;
+  stroke: #000;
 }

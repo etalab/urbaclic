@@ -413,7 +413,7 @@ jQuery(document).ready(function ($) {
         '</tr>',
         '{{#each servitudes}}',
         '<tr>',
-        '<td class="servitude_id"><div class="map" data-servitudeid="{{id}}"></div>{{id}}</td>',
+        '<td class="servitude_id"><div class="map" data-servitudeid="{{_id}}"></div></td>',
         '<td class="name">{{nom}}</td>',
         '<td class="type">{{type}}</td>',
         '<td class="code_merimee"><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td>',
@@ -462,12 +462,11 @@ jQuery(document).ready(function ($) {
         var urbaClic_options = {
             showMap: true,
             showData: true,
-            sharelink: false,
             getadresse: true,
             getservitude: true,
             getPlu: true,
             sharelink: false,
-            autocomplete_limit: 50,
+            autocomplete_limit: 20,
             leaflet_map_options: {},
             ign_key: null,
             background_layers: ['OpenStreetMap', 'MapQuest_Open', 'OpenTopoMap']
@@ -497,7 +496,11 @@ jQuery(document).ready(function ($) {
             }
         }
 
-        var input = container.find('#urbaclic-search');
+        if (jQuery('#urbaclic-search').length == 0) {
+            jQuery('<div id="urbaclic-autocomplete"><input type="text" id="urbaclic-search" placeholder="adresse de la parcelle"></div>').appendTo(container);
+        }
+
+        var input = jQuery('#urbaclic-search');
 
         var ban_options = autocomplete_params;
 
@@ -513,7 +516,7 @@ jQuery(document).ready(function ($) {
         var circle_pointToLayer = function (feature, latlng) {
 
             var geojsonMarkerOptions = {
-                radius: 3
+                radius: 5
             };
 
             return L.circleMarker(latlng, geojsonMarkerOptions);
@@ -537,7 +540,7 @@ jQuery(document).ready(function ($) {
 
         var autocomplete_press = function (val) {
             //console.log(val);
-            var ul = container.find('ul.urbaclic-autocomplete');
+            var ul = jQuery('#urbaclic-autocomplete ul');
 
             var updateStyle = function () {
                 ul.find('a.focus').removeClass('focus');
@@ -585,22 +588,22 @@ jQuery(document).ready(function ($) {
         };
 
         var autocomplete_show = function () {
-            console.log('show');
+            //console.log('show');
             autocomplete_open = true;
             autocomplete_pos = -1;
             clearTimeout(focusOff_timeout);
-            container.find('ul.urbaclic-autocomplete').slideDown();
+            jQuery('#urbaclic-autocomplete ul').slideDown();
         };
 
 
         var autocomplete_hide = function () {
-            console.log('hide');
+            //console.log('hide');
             autocomplete_open = false;
             autocomplete_pos = -1;
-            container.find('ul.urbaclic-autocomplete a.focus').removeClass('focus');
+            jQuery('#urbaclic-autocomplete ul a.focus').removeClass('focus');
             clearTimeout(focusOff_timeout);
             focusOff_timeout = setTimeout(function () {
-                container.find('ul.urbaclic-autocomplete').slideUp();
+                jQuery('#urbaclic-autocomplete ul').slideUp();
             }, 200);
 
         };
@@ -609,12 +612,11 @@ jQuery(document).ready(function ($) {
 
             autocomplete_pos = -1;
 
-            var ul = container.find('ul.urbaclic-autocomplete');
+            var ul = jQuery('#urbaclic-autocomplete ul');
 
             if (ban_query) ban_query.abort();
             input.prop('tabindex', 1000);
             var t = input.val();
-
 
             if (t.search(/\d{1,2}(\.\d+)?,\s*\d{1,2}(\.\d+)/) == 0) {
                 console.log('load from latlng: ' + t);
@@ -649,7 +651,7 @@ jQuery(document).ready(function ($) {
 
                 if (loadFirst === true) {
                     console.log('loadFirst');
-                    initMarker(container.find('ul.urbaclic-autocomplete a').first().data());
+                    initMarker(jQuery('#urbaclic-autocomplete ul a').first().data());
                 }
 
 
@@ -675,18 +677,18 @@ jQuery(document).ready(function ($) {
                         ul.html(Templates.autocomplete(data)).slideDown();
 
                         /*var tbindex = 1000;
-                        container.find('ul.urbaclic-autocomplete a').each(function () {
+                        jQuery('#urbaclic-autocomplete ul a').each(function () {
                             tbindex++;
                             jQuery(this).prop('tabindex', tbindex);
                         });*/
 
                         /*if (data.features.length == 1) {
-                            initMarker(container.find('ul.urbaclic-autocomplete a').first().data());
+                            initMarker(jQuery('#urbaclic-autocomplete ul a').first().data());
                         }*/
 
                         if (loadFirst === true) {
                             console.log('loadFirst');
-                            initMarker(container.find('ul.urbaclic-autocomplete a').first().data());
+                            initMarker(jQuery('#urbaclic-autocomplete ul a').first().data());
                         }
 
 
@@ -696,7 +698,7 @@ jQuery(document).ready(function ($) {
                     }
                 });
             } else {
-                container.find('ul.urbaclic-autocomplete').html('').slideUp();
+                jQuery('#urbaclic-autocomplete ul').html('').slideUp();
             }
         }
 
@@ -1045,7 +1047,6 @@ jQuery(document).ready(function ($) {
 
         var getServitudesDetail = function () {
 
-            var exemple = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[1.4412478,43.6082612],[1.4412321,43.608283],[1.4412157,43.6083198],[1.4412124,43.6083362],[1.4412129,43.6083494],[1.4412174,43.6083629],[1.4412262,43.6083779],[1.4412359,43.6083901],[1.4412502,43.6084037],[1.441268,43.6084169],[1.4412925,43.608431],[1.4413593,43.6084602],[1.4420934,43.6087783],[1.4421189,43.6087877],[1.4421488,43.6087948],[1.4421846,43.6088028],[1.4422125,43.6088065],[1.4422447,43.6088068],[1.4422806,43.6088074],[1.4423509,43.6088],[1.4423847,43.6087931],[1.4424154,43.6087853],[1.4424473,43.6087753],[1.4424598,43.6087687],[1.4424814,43.6087582],[1.4425016,43.608747],[1.4425282,43.6087283],[1.4425585,43.608706],[1.4425849,43.6086784],[1.4426028,43.6086577],[1.4426164,43.6086344],[1.4426286,43.60861],[1.4426393,43.6085774],[1.4426439,43.6085546],[1.4426422,43.6085276],[1.442637,43.6084934],[1.4426268,43.6084577],[1.4426137,43.608433],[1.4425875,43.6083981],[1.4425643,43.6083729],[1.4425318,43.6083446],[1.4424997,43.6083221],[1.4424767,43.60831],[1.4424701,43.6083065],[1.442414,43.6082802],[1.4424231,43.6082674],[1.4423022,43.6082102],[1.4422896,43.6082248],[1.4422332,43.6082],[1.4416873,43.6079607],[1.4416532,43.6079493],[1.4416239,43.6079428],[1.4415958,43.6079408],[1.4415692,43.6079431],[1.4415419,43.6079481],[1.4415214,43.6079563],[1.4414887,43.6079721],[1.4414636,43.6079894],[1.441466,43.6080011],[1.4414649,43.6080026],[1.4414508,43.6080209],[1.4414605,43.6080258],[1.4414147,43.6080792],[1.4414018,43.6080729],[1.4413164,43.6081766],[1.4413231,43.6081806],[1.4412769,43.6082392],[1.4412661,43.6082353],[1.4412478,43.6082612]]]]},"properties":{"test":"test"}}]}';
 
             container.find('.map[data-servitudeid]').each(function () {
                 var map_container = jQuery(this);
@@ -1054,23 +1055,56 @@ jQuery(document).ready(function ($) {
                     zoomControl: false
                 });
 
+
+
+                var url = URBA_API + 'servitudes/' + servitude_id;
+
                 var servitudes_map = L.map(map_container[0], options).setView([46.6795944656402, 2.197265625], 4);
                 servitudes_map.attributionControl.setPrefix('');
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(servitudes_map);
+                var l = urbaClicUtils.getModelLayer(urbaClic_options.background_layers[0], urbaClic_options.ign_key);
+                l.layer.addTo(servitudes_map);
 
-                var data = JSON.parse(exemple);
 
-                var layer = L.geoJson(data, {
-                    onEachFeature: function (feature, layer) {
-                        var html = default_template(feature);
-                        layer.bindPopup(html);
-                    },
-                    style: {
-                        'className': 'parcelle'
-                    }
+                jQuery.getJSON(url, function (data) {
+
+                    var geojson_generateur = {
+                        type: "FeatureCollection",
+                        features: [{
+                            type: "Feature",
+                            properties: {},
+                            geometry: data.generateur
+                        }]
+                    };
+
+
+                    var layer_generateur = L.geoJson(geojson_generateur, {
+                        style: {
+                            'className': 'generateur'
+                        }
+                    });
+                    layer_generateur.addTo(servitudes_map);
+                    servitudes_map.fitBounds(layer_generateur.getBounds());
+
+
+
+                    var geojson_assiette = {
+                        type: "FeatureCollection",
+                        features: [{
+                            type: "Feature",
+                            properties: {},
+                            geometry: data.assiette
+                        }]
+                    };
+
+
+                    var layer_assiette = L.geoJson(geojson_assiette, {
+                        style: {
+                            'className': 'assiette'
+                        }
+                    });
+                    layer_assiette.addTo(servitudes_map);
+
                 });
-                layer.addTo(servitudes_map);
-                servitudes_map.fitBounds(layer.getBounds());
 
 
             });
@@ -1232,17 +1266,17 @@ jQuery(document).ready(function ($) {
             .focusin(autocomplete_show)
             .focusout(autocomplete_hide);
 
-        container.on('click', 'ul.urbaclic-autocomplete [data-feature]', function (e) {
-            e.preventDefault();
-            initMarker(jQuery(this).data(), true);
-        }).on('mouseover', 'ul.urbaclic-autocomplete', function (e) {
-            clearTimeout(focusOff_timeout);
-        }).on('focusin', 'ul.urbaclic-autocomplete *', function (e) {
-            clearTimeout(focusOff_timeout);
-        }).on('focusout', 'ul.urbaclic-autocomplete *', function (e) {
-            clearTimeout(focusOff_timeout);
-            focusOff_timeout = setTimeout(focusOff, 200);
-        })
+        jQuery('#urbaclic-autocomplete')
+            .on('click', '.urbaclic-autocomplete [data-feature]', function (e) {
+                e.preventDefault();
+                initMarker(jQuery(this).data(), true);
+            }).on('mouseover', '.urbaclic-autocomplete', function (e) {
+                clearTimeout(focusOff_timeout);
+            }).on('focusin', '.urbaclic-autocomplete *', function (e) {
+                autocomplete_show();
+            }).on('focusout', '.urbaclic-autocomplete *', function (e) {
+                autocomplete_hide();
+            })
 
 
 
