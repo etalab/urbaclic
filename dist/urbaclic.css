@@ -152,6 +152,23 @@
   fill: #f00;
   stroke: #f00;
 }
+.urbaclic-map .leaflet-popup-content h4 {
+  text-transform: center;
+}
+.urbaclic-map .leaflet-popup-content table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.urbaclic-map .leaflet-popup-content table th {
+  font-weight: bold;
+}
+.urbaclic-map .leaflet-popup-content table th,
+.urbaclic-map .leaflet-popup-content table td {
+  padding: 5px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
 .urbaclic-data > div > table {
   width: 100%;
   border-collapse: collapse;

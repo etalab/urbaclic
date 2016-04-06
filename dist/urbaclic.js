@@ -161,7 +161,10 @@ urbaClicUtils.urlify = function(text) {
     var Templates = {}, sortDesc = !1;
     Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">', "   {{marks properties.label ../query}}", "   &nbsp;<i>{{_ properties.type}}</i>", "</a></li>", "{{/each}}" ], 
     Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ], 
-    Templates.parcelleData = [ '{{#ifCond adresse "!=" null}}', '<div class="position">', "<h4>position</h4>", "<table>", "<tr>", '<th class="position">coordonnées marqueur</th>', '<th class="adresse">Adresse estimée</th>', "</tr>", "<tr>", '<td class="position">{{latlng.lat}}, {{latlng.lng}}</td>', "{{#with adresse}}", '<td class="adresse">{{name}} {{postcode}} {{city}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond cadastre "!=" undefined}}', "{{#with cadastre}}", '<div class="cadastre">', "<h4>cadastre</h4>", "<table>", "<tr>", '<th class="parcelle_id">ID</th>', '<th class="code_dep">code_dep</th>', '<th class="code_com">code_com</th>', '<th class="nom_com">nom_com</th>', '<th class="code_arr">code_arr</th>', '<th class="com_abs">com_abs</th>', '<th class="feuille">feuille</th>', '<th class="section">section</th>', '<th class="numero">numero</th>', '<th class="surface_parcelle">surface parcelle</th>', "</tr>", "<tr>", '<td class="parcelle_id">{{../parcelle_id}}</td>', '<td class="code_dep">{{code_dep}}</td>', '<td class="code_com">{{code_com}}</td>', '<td class="nom_com">{{nom_com}}</td>', '<td class="code_arr">{{code_arr}}</td>', '<td class="com_abs">{{com_abs}}</td>', '<td class="feuille">{{feuille}}</td>', '<td class="section">{{section}}</td>', '<td class="numero">{{numero}}</td>', '<td class="surface_parcelle">{{round surface_parcelle}}m²</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond plu "!=" null}}', "{{#with plu}}", '<div class="plu">', "<h4>PLU</h4>", "<table>", "<tr>", '<th class="libelle">Libellé</th>', '<th class="txt">Texte</th>', "</tr>", "<tr>", '<td class="libelle">{{LIBELLE}}</td>', '<td class="txt">{{TXT}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond servitudes "!=" null}}', '<div class="servitudes">', "<h4>servitudes</h4>", '{{#ifCount servitudes "==" 0}}', "<ul>", "<li>aucune</li>", "</ul>", "{{else}}", "<p>La parcelle est concernée par {{count servitudes}} servitudes</p>", "<table>", "<tr>", '<th class="servitude_id">ID</th>', '<th class="name">nom</th>', '<th class="type">type</th>', '<th class="code_merimee">Code Mérimée</th>', "</tr>", "{{#each servitudes}}", "<tr>", '<td class="servitude_id"><div class="map" data-servitudeid="{{_id}}" data-properties="{{jsonencode .}}"></div></td>', '<td class="name">{{nom}}</td>', '<td class="type">{{type}}</td>', '<td class="code_merimee"><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td>', "</tr>", "{{/each}}", "</table>", "</ul>", "{{/ifCount}}", "</div>", "{{/ifCond}}" ];
+    Templates.parcelleData = [ '{{#ifCond adresse "!=" null}}', '<div class="position">', "<h4>{{_ 'position'}}</h4>", "<table>", "<tr>", "<th class=\"position\">{{_ 'Markeur_latlng'}}</th>", "<th class=\"adresse\">{{_ 'estimated_adress'}}</th>", "</tr>", "<tr>", '<td class="position">{{latlng.lat}}, {{latlng.lng}}</td>', "{{#with adresse}}", '<td class="adresse">{{name}} {{postcode}} {{city}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond cadastre "!=" undefined}}', "{{#with cadastre}}", '<div class="cadastre">', "<h4>{{_ 'cadastre'}}</h4>", "<table>", "<tr>", "<th class=\"parcelle_id\">{{_ 'Parcelle_id'}}</th>", "<th class=\"code_dep\">{{_ 'code_dep'}}</th>", "<th class=\"code_com\">{{_ 'code_com'}}</th>", "<th class=\"nom_com\">{{_ 'nom_com'}}</th>", "<th class=\"code_arr\">{{_ 'code_arr'}}</th>", "<th class=\"com_abs\">{{_ 'com_abs'}}</th>", "<th class=\"feuille\">{{_ 'cadastre_feuille'}}</th>", "<th class=\"section\">{{_ 'cadastre_section'}}</th>", "<th class=\"numero\">{{_ 'cadastre_numero'}}</th>", "<th class=\"surface_parcelle\">{{_ 'cadastre_surface_parcelle'}}</th>", "</tr>", "<tr>", '<td class="parcelle_id">{{../parcelle_id}}</td>', '<td class="code_dep">{{code_dep}}</td>', '<td class="code_com">{{code_com}}</td>', '<td class="nom_com">{{nom_com}}</td>', '<td class="code_arr">{{code_arr}}</td>', '<td class="com_abs">{{com_abs}}</td>', '<td class="feuille">{{feuille}}</td>', '<td class="section">{{section}}</td>', '<td class="numero">{{numero}}</td>', '<td class="surface_parcelle">{{round surface_parcelle}}m²</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond plu "!=" null}}', "{{#with plu}}", '<div class="plu">', "<h4>{{_ 'PLU'}}</h4>", "<table>", "<tr>", "<th class=\"libelle\">{{_ 'plu_libelle'}}</th>", "<th class=\"txt\">{{_ 'plu_txt'}}</th>", "</tr>", "<tr>", '<td class="libelle">{{LIBELLE}}</td>', '<td class="txt">{{TXT}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond servitudes "!=" null}}', '<div class="servitudes">', "<h4>{{_ 'servitudes'}}</h4>", '{{#ifCount servitudes "==" 0}}', "<ul>", "<li>{{_ 'servitudes_none'}}</li>", "</ul>", "{{else}}", "<p>La parcelle est concernée par {{count servitudes}} servitudes</p>", "<table>", "<tr>", "<th class=\"servitude_id\">{{_ 'servitude_id'}}</th>", "<th class=\"name\">{{_ 'servitude_name'}}</th>", "<th class=\"type\">{{_ 'servitude_type'}}</th>", "<th class=\"code_merimee\">{{_ 'code_merimee'}}</th>", "</tr>", "{{#each servitudes}}", "<tr>", '<td class="servitude_id"><div class="map" data-servitudeid="{{_id}}" data-properties="{{jsonencode .}}"></div></td>', '<td class="name">{{nom}}</td>', '<td class="type">{{type}}</td>', '<td class="code_merimee"><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td>', "</tr>", "{{/each}}", "</table>", "</ul>", "{{/ifCount}}", "</div>", "{{/ifCond}}" ], 
+    Templates.adressePopup = [ "<h4>{{_ 'adresse'}}: {{label}}</h4>", "<table>", "<tr><th>{{_ 'street'}}</th><td>{{street}}</td></tr>", "<tr><th>{{_ 'city'}}</th><td>{{city}}</td></tr>", "</table>" ], 
+    Templates.parcellePopup = [ "<h4>{{_ 'parcelle'}}: {{parcelle_id}}</h4>", "<table>", "<tr><th>{{_ 'cadastre_feuille'}}</th><td>{{feuille}}</td></tr>", "<tr><th>{{_ 'cadastre_section'}}</th><td>{{section}}</td></tr>", "<tr><th>{{_ 'cadastre_numero'}}</th><td>{{numero}}</td></tr>", "<tr><th>{{_ 'cadastre_surface_parcelle'}}</th><td>{{round surface_parcelle}}m²</td></tr>", "</table>" ], 
+    Templates.servitudePopup = [ "<h4>{{_ 'servitude'}}: {{nom}}</h4>", "<table>", "<tr><th>{{_ 'servitude_type'}}</th><td>{{type}}</td></tr>", "<tr><th>{{_ 'code_merimee'}}</th><td><a target=_blank href=\"http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}\">{{codeMerimee}}</a></td></tr>", "</table>" ];
     var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
         var container = obj, map = null, current_citycode = null, layers = {
@@ -327,7 +330,7 @@ urbaClicUtils.urlify = function(text) {
             layers.adresse && map.removeLayer(layers.adresse);
             var layer = L.geoJson(data, {
                 onEachFeature: function(feature, layer) {
-                    var html = default_template(feature);
+                    var html = Templates.adressePopup(feature.properties);
                     layer.bindPopup(html);
                 },
                 pointToLayer: circle_pointToLayer,
@@ -394,7 +397,8 @@ urbaClicUtils.urlify = function(text) {
                     layers.parcelle && map.removeLayer(layers.parcelle);
                     var layer = L.geoJson(data, {
                         onEachFeature: function(feature, layer) {
-                            var html = default_template(feature);
+                            feature.properties.parcelle_id = getParcelleId(feature);
+                            var html = Templates.parcellePopup(feature.properties);
                             layer.bindPopup(html);
                         },
                         style: {
@@ -417,7 +421,8 @@ urbaClicUtils.urlify = function(text) {
                 if (data.features.length) {
                     var layer = L.geoJson(data, {
                         onEachFeature: function(feature, layer) {
-                            var html = default_template(feature);
+                            feature.properties.parcelle_id = getParcelleId(feature);
+                            var html = Templates.parcellePopup(feature.properties);
                             layer.bindPopup(html);
                         },
                         style: {
@@ -480,9 +485,7 @@ urbaClicUtils.urlify = function(text) {
                     layer_assiette.addTo(servitudes_map), servitudes_map.fitBounds(layer_assiette.getBounds());
                     var layer_generateur2 = L.geoJson(geojson_generateur, {
                         onEachFeature: function(feature, layer) {
-                            var html = default_template({
-                                properties: properties
-                            });
+                            var html = Templates.servitudePopup(properties);
                             layer.bindPopup(html);
                         },
                         style: {
@@ -492,9 +495,7 @@ urbaClicUtils.urlify = function(text) {
                     layers.servitudes.addLayer(layer_generateur2);
                     var layer_assiette2 = L.geoJson(geojson_assiette, {
                         onEachFeature: function(feature, layer) {
-                            var html = default_template({
-                                properties: properties
-                            });
+                            var html = Templates.servitudePopup(properties);
                             layer.bindPopup(html);
                         },
                         style: {
@@ -504,12 +505,15 @@ urbaClicUtils.urlify = function(text) {
                     layers.zones_servitudes.addLayer(layer_assiette2);
                 });
             });
+        }, getParcelleId = function(feature) {
+            var parcelleId = [ feature.properties.code_dep, feature.properties.code_com ];
+            return "000" != feature.properties.code_arr ? parcelleId.push(feature.properties.code_arr) : parcelleId.push(feature.properties.com_abs), 
+            parcelleId.push(feature.properties.section), parcelleId.push(feature.properties.numero), 
+            parcelleId = parcelleId.join("");
         }, showData = function(feature, layer, evt) {
             map.fitBounds(layer.getBounds());
-            var parcelleId = [ feature.properties.code_dep, feature.properties.code_com ];
-            "000" != feature.properties.code_arr ? parcelleId.push(feature.properties.code_arr) : parcelleId.push(feature.properties.com_abs), 
-            parcelleId.push(feature.properties.section), parcelleId.push(feature.properties.numero), 
-            parcelleId = parcelleId.join(""), urbaClic_options.showData && (jQuery(".urbaclic-data").length || jQuery('<div class="urbaclic-data"></div>').appendTo(container)), 
+            var parcelleId = getParcelleId(feature);
+            urbaClic_options.showData && (jQuery(".urbaclic-data").length || jQuery('<div class="urbaclic-data"></div>').appendTo(container)), 
             current_parcelle.data = {
                 latlng: evt.latlng,
                 parcelle_id: parcelleId,
@@ -556,7 +560,7 @@ urbaClicUtils.urlify = function(text) {
             }
         }, initial_url = decodeURIComponent(document.URL);
         return initial_url.split("#").length > 1 ? (initial_url = initial_url.split("#")[0], 
-        loadFromUrl()) : autocomplete(), input.keydown(function(e) {
+        setTimeout(loadFromUrl, 100)) : autocomplete(), input.keydown(function(e) {
             var c = e.keyCode;
             return 13 === c ? autocomplete_press("Enter") : 27 === c ? autocomplete_press("Esc") : 38 === c ? autocomplete_press("Up") : 40 === c ? autocomplete_press("Down") : void setTimeout(autocomplete, 10);
         }).focusin(autocomplete_show).focusout(autocomplete_hide), jQuery("#urbaclic-autocomplete").on("click", ".urbaclic-autocomplete [data-feature]", function(e) {

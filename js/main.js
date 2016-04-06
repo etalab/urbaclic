@@ -315,12 +315,12 @@ jQuery(document).ready(function ($) {
         '{{#ifCond adresse "!=" null}}',
 
         '<div class="position">',
-        '<h4>position</h4>',
+        '<h4>{{_ \'position\'}}</h4>',
 
         '<table>',
         '<tr>',
-        '<th class="position">coordonnées marqueur</th>',
-        '<th class="adresse">Adresse estimée</th>',
+        '<th class="position">{{_ \'Markeur_latlng\'}}</th>',
+        '<th class="adresse">{{_ \'estimated_adress\'}}</th>',
         '</tr>',
         '<tr>',
         '<td class="position">{{latlng.lat}}, {{latlng.lng}}</td>',
@@ -336,20 +336,20 @@ jQuery(document).ready(function ($) {
         '{{#ifCond cadastre "!=" undefined}}',
         '{{#with cadastre}}',
         '<div class="cadastre">',
-        '<h4>cadastre</h4>',
+        '<h4>{{_ \'cadastre\'}}</h4>',
 
         '<table>',
         '<tr>',
-        '<th class="parcelle_id">ID</th>',
-        '<th class="code_dep">code_dep</th>',
-        '<th class="code_com">code_com</th>',
-        '<th class="nom_com">nom_com</th>',
-        '<th class="code_arr">code_arr</th>',
-        '<th class="com_abs">com_abs</th>',
-        '<th class="feuille">feuille</th>',
-        '<th class="section">section</th>',
-        '<th class="numero">numero</th>',
-        '<th class="surface_parcelle">surface parcelle</th>',
+        '<th class="parcelle_id">{{_ \'Parcelle_id\'}}</th>',
+        '<th class="code_dep">{{_ \'code_dep\'}}</th>',
+        '<th class="code_com">{{_ \'code_com\'}}</th>',
+        '<th class="nom_com">{{_ \'nom_com\'}}</th>',
+        '<th class="code_arr">{{_ \'code_arr\'}}</th>',
+        '<th class="com_abs">{{_ \'com_abs\'}}</th>',
+        '<th class="feuille">{{_ \'cadastre_feuille\'}}</th>',
+        '<th class="section">{{_ \'cadastre_section\'}}</th>',
+        '<th class="numero">{{_ \'cadastre_numero\'}}</th>',
+        '<th class="surface_parcelle">{{_ \'cadastre_surface_parcelle\'}}</th>',
         '</tr>',
         '<tr>',
         '<td class="parcelle_id">{{../parcelle_id}}</td>',
@@ -375,12 +375,12 @@ jQuery(document).ready(function ($) {
         '{{#ifCond plu "!=" null}}',
         '{{#with plu}}',
         '<div class="plu">',
-        '<h4>PLU</h4>',
+        '<h4>{{_ \'PLU\'}}</h4>',
 
         '<table>',
         '<tr>',
-        '<th class="libelle">Libellé</th>',
-        '<th class="txt">Texte</th>',
+        '<th class="libelle">{{_ \'plu_libelle\'}}</th>',
+        '<th class="txt">{{_ \'plu_txt\'}}</th>',
         '</tr>',
         '<tr>',
         '<td class="libelle">{{LIBELLE}}</td>',
@@ -394,21 +394,21 @@ jQuery(document).ready(function ($) {
 
         '{{#ifCond servitudes "!=" null}}',
         '<div class="servitudes">',
-        '<h4>servitudes</h4>',
+        '<h4>{{_ \'servitudes\'}}</h4>',
 
         '{{#ifCount servitudes "==" 0}}',
         '<ul>',
-        '<li>aucune</li>',
+        '<li>{{_ \'servitudes_none\'}}</li>',
         '</ul>',
         '{{else}}',
 
         '<p>La parcelle est concernée par {{count servitudes}} servitudes</p>',
         '<table>',
         '<tr>',
-        '<th class="servitude_id">ID</th>',
-        '<th class="name">nom</th>',
-        '<th class="type">type</th>',
-        '<th class="code_merimee">Code Mérimée</th>',
+        '<th class="servitude_id">{{_ \'servitude_id\'}}</th>',
+        '<th class="name">{{_ \'servitude_name\'}}</th>',
+        '<th class="type">{{_ \'servitude_type\'}}</th>',
+        '<th class="code_merimee">{{_ \'code_merimee\'}}</th>',
         '</tr>',
         '{{#each servitudes}}',
         '<tr>',
@@ -428,6 +428,32 @@ jQuery(document).ready(function ($) {
 
     ];
 
+
+    Templates.adressePopup = [
+        '<h4>{{_ \'adresse\'}}: {{label}}</h4>',
+        '<table>',
+        '<tr><th>{{_ \'street\'}}</th><td>{{street}}</td></tr>',
+        '<tr><th>{{_ \'city\'}}</th><td>{{city}}</td></tr>',
+        '</table>'
+    ];
+
+    Templates.parcellePopup = [
+        '<h4>{{_ \'parcelle\'}}: {{parcelle_id}}</h4>',
+        '<table>',
+        '<tr><th>{{_ \'cadastre_feuille\'}}</th><td>{{feuille}}</td></tr>',
+        '<tr><th>{{_ \'cadastre_section\'}}</th><td>{{section}}</td></tr>',
+        '<tr><th>{{_ \'cadastre_numero\'}}</th><td>{{numero}}</td></tr>',
+        '<tr><th>{{_ \'cadastre_surface_parcelle\'}}</th><td>{{round surface_parcelle}}m²</td></tr>',
+        '</table>'
+    ];
+
+    Templates.servitudePopup = [
+        '<h4>{{_ \'servitude\'}}: {{nom}}</h4>',
+        '<table>',
+        '<tr><th>{{_ \'servitude_type\'}}</th><td>{{type}}</td></tr>',
+        '<tr><th>{{_ \'code_merimee\'}}</th><td><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td></tr>',
+        '</table>'
+    ];
 
 
 
@@ -818,7 +844,7 @@ jQuery(document).ready(function ($) {
             if (layers.adresse) map.removeLayer(layers.adresse);
             var layer = L.geoJson(data, {
                 onEachFeature: function (feature, layer) {
-                    var html = default_template(feature);
+                    var html = Templates.adressePopup(feature.properties);
                     layer.bindPopup(html);
                 },
                 pointToLayer: circle_pointToLayer,
@@ -952,7 +978,8 @@ jQuery(document).ready(function ($) {
                     if (layers.parcelle) map.removeLayer(layers.parcelle);
                     var layer = L.geoJson(data, {
                         onEachFeature: function (feature, layer) {
-                            var html = default_template(feature);
+                            feature.properties.parcelle_id = getParcelleId(feature);
+                            var html = Templates.parcellePopup(feature.properties);
                             layer.bindPopup(html);
                         },
                         style: {
@@ -1006,7 +1033,8 @@ jQuery(document).ready(function ($) {
                 if (data.features.length) {
                     var layer = L.geoJson(data, {
                         onEachFeature: function (feature, layer) {
-                            var html = default_template(feature);
+                            feature.properties.parcelle_id = getParcelleId(feature);
+                            var html = Templates.parcellePopup(feature.properties);
                             layer.bindPopup(html);
                         },
                         style: {
@@ -1134,9 +1162,7 @@ jQuery(document).ready(function ($) {
 
                     var layer_generateur2 = L.geoJson(geojson_generateur, {
                         onEachFeature: function (feature, layer) {
-                            var html = default_template({
-                                properties: properties
-                            });
+                            var html = Templates.servitudePopup(properties);
                             layer.bindPopup(html);
                         },
                         style: {
@@ -1150,9 +1176,7 @@ jQuery(document).ready(function ($) {
 
                     var layer_assiette2 = L.geoJson(geojson_assiette, {
                         onEachFeature: function (feature, layer) {
-                            var html = default_template({
-                                properties: properties
-                            });
+                            var html = Templates.servitudePopup(properties);
                             layer.bindPopup(html);
                         },
                         style: {
@@ -1171,9 +1195,7 @@ jQuery(document).ready(function ($) {
 
         }
 
-        var showData = function (feature, layer, evt) {
-
-            map.fitBounds(layer.getBounds());
+        var getParcelleId = function (feature) {
             var parcelleId = [
                 feature.properties.code_dep,
                 feature.properties.code_com
@@ -1190,6 +1212,14 @@ jQuery(document).ready(function ($) {
             parcelleId.push(feature.properties.numero);
 
             parcelleId = parcelleId.join('');
+
+            return parcelleId;
+        }
+
+        var showData = function (feature, layer, evt) {
+
+            map.fitBounds(layer.getBounds());
+            var parcelleId = getParcelleId(feature);
 
             if (urbaClic_options.showData) {
                 if (!jQuery('.urbaclic-data').length) jQuery('<div class="urbaclic-data"></div>').appendTo(container);
@@ -1301,7 +1331,7 @@ jQuery(document).ready(function ($) {
         var initial_url = decodeURIComponent(document.URL);
         if (initial_url.split('#').length > 1) {
             initial_url = initial_url.split('#')[0];
-            loadFromUrl();
+            setTimeout(loadFromUrl, 100);
         } else {
             autocomplete();
         }

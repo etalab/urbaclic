@@ -9,6 +9,39 @@
     "IGN:CADASTRALPARCELS.PARCELS": "Géoportail - Parcelles cadastrales",
     "IGN:ORTHOIMAGERY.ORTHOPHOTOS": "Géoportail - Orthophotographies",
 
+    "latlng": "latlng",
+
+    "parcelle": "parcelle",
+    "cadastre": "cadastre",
+    "cadastre_feuille": "feuille",
+    "cadastre_section": "section",
+    "cadastre_numero": "numéro",
+    "cadastre_surface_parcelle": "superficie",
+    "Parcelle_id": "ID",
+
+    "Code_dep": "code département",
+    "Code_com": "code commune",
+    "Nom_com": "commune",
+    "Code_arr": "code arrondissement",
+    "Com_abs": "code commune absorbée INSEE",
+
+    "PLU": "Plan Local d'Urbanisme",
+    "plu_libelle": "libellé",
+    "plu_txt": "description",
+
+    "adresse": "adresse",
+    "position": "position",
+    "Markeur_latlng": "Latitude/Longitude marqueur",
+    "estimated_adress": "adresse estimée",
+
+    "Servitudes": "Servitudes",
+    "Servitude": "Servitude",
+    "Servitude_id": "ID",
+    "Servitude_name": "nom",
+    "Servitude_type": "type",
+    "Code_merimee": "code Mérimée",
+
+
 
     ".": "."
 }
