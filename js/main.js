@@ -116,7 +116,6 @@ urbaClicUtils.closestF = {
             p1 = map.latLngToLayerPoint(latlngA),
             p2 = map.latLngToLayerPoint(latlngB);
 
-        //console.log(p.toString(), p1.toString(), p2.toString(), L.LineUtil.pointToSegmentDistance(p, p1, p2));
         return L.LineUtil.pointToSegmentDistance(p, p1, p2);
     },
 
@@ -413,7 +412,7 @@ jQuery(document).ready(function ($) {
         '</tr>',
         '{{#each servitudes}}',
         '<tr>',
-        '<td class="servitude_id"><div class="map" data-servitudeid="{{_id}}"></div></td>',
+        '<td class="servitude_id"><div class="map" data-servitudeid="{{_id}}" data-properties="{{jsonencode .}}"></div></td>',
         '<td class="name">{{nom}}</td>',
         '<td class="type">{{type}}</td>',
         '<td class="code_merimee"><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td>',
@@ -449,11 +448,13 @@ jQuery(document).ready(function ($) {
         var current_citycode = null;
 
         var layers = {
-            ban: null,
             adresse: null,
+            marqueur: null,
             parcelle: null,
-            // parcelles: null
+            servitudes: null,
         }
+
+        //var servitude_layers = [];
 
 
 
@@ -539,7 +540,6 @@ jQuery(document).ready(function ($) {
         }
 
         var autocomplete_press = function (val) {
-            //console.log(val);
             var ul = jQuery('#urbaclic-autocomplete ul');
 
             var updateStyle = function () {
@@ -588,7 +588,6 @@ jQuery(document).ready(function ($) {
         };
 
         var autocomplete_show = function () {
-            //console.log('show');
             autocomplete_open = true;
             autocomplete_pos = -1;
             clearTimeout(focusOff_timeout);
@@ -597,7 +596,6 @@ jQuery(document).ready(function ($) {
 
 
         var autocomplete_hide = function () {
-            //console.log('hide');
             autocomplete_open = false;
             autocomplete_pos = -1;
             jQuery('#urbaclic-autocomplete ul a.focus').removeClass('focus');
@@ -650,7 +648,6 @@ jQuery(document).ready(function ($) {
                 ul.html(Templates.autocomplete(data)).slideDown();
 
                 if (loadFirst === true) {
-                    console.log('loadFirst');
                     initMarker(jQuery('#urbaclic-autocomplete ul a').first().data());
                 }
 
@@ -676,18 +673,7 @@ jQuery(document).ready(function ($) {
                     if (data.features.length) {
                         ul.html(Templates.autocomplete(data)).slideDown();
 
-                        /*var tbindex = 1000;
-                        jQuery('#urbaclic-autocomplete ul a').each(function () {
-                            tbindex++;
-                            jQuery(this).prop('tabindex', tbindex);
-                        });*/
-
-                        /*if (data.features.length == 1) {
-                            initMarker(jQuery('#urbaclic-autocomplete ul a').first().data());
-                        }*/
-
                         if (loadFirst === true) {
-                            console.log('loadFirst');
                             initMarker(jQuery('#urbaclic-autocomplete ul a').first().data());
                         }
 
@@ -830,7 +816,7 @@ jQuery(document).ready(function ($) {
         }
 
         var addBanLayer = function (data) {
-            if (layers.ban) map.removeLayer(layers.ban);
+            if (layers.adresse) map.removeLayer(layers.adresse);
             var layer = L.geoJson(data, {
                 onEachFeature: function (feature, layer) {
                     var html = default_template(feature);
@@ -838,17 +824,17 @@ jQuery(document).ready(function ($) {
                 },
                 pointToLayer: circle_pointToLayer,
                 style: {
-                    'className': 'ban'
+                    'className': 'adresse'
                 }
             }).addTo(map);
-            layers.ban = layer;
+            layers.adresse = layer;
             updateLayerController();
             return layer;
         }
 
 
-        var addAdressLayer = function (data) {
-            if (layers.adresse) map.removeLayer(layers.adresse);
+        var addMarqueurLayer = function (data) {
+            if (layers.marqueur) map.removeLayer(layers.marqueur);
 
 
             var layer = L.marker([data.features[0].geometry.coordinates[1], data.features[0].geometry.coordinates[0]], {
@@ -859,7 +845,7 @@ jQuery(document).ready(function ($) {
             }).addTo(map);
 
 
-            layers.adresse = layer;
+            layers.marqueur = layer;
             updateLayerController();
             return layer;
         };
@@ -878,7 +864,7 @@ jQuery(document).ready(function ($) {
 
         var pushHistory = function () {
             history.pushState(null, null, initial_url + '#' + encodeURIComponent(input.val().replace(/\s/g, "+")));
-            console.log("pushState " + input.val());
+            //console.log("pushState " + input.val());
         }
 
 
@@ -898,7 +884,7 @@ jQuery(document).ready(function ($) {
 
             current_citycode = params.feature.properties.citycode;
 
-            if (layers.adresse) map.removeLayer(layers.adresse);
+            if (layers.marqueur) map.removeLayer(layers.marqueur);
             var marker_pos = {
                 latlng: L.latLng(params.feature.geometry.coordinates[1], params.feature.geometry.coordinates[0])
             };
@@ -911,12 +897,12 @@ jQuery(document).ready(function ($) {
                 features: [params.feature]
             };
 
-            layers.adresse = addAdressLayer(adresse_json);
-            map.fitBounds(L.featureGroup([layers.adresse]).getBounds());
+            layers.marqueur = addMarqueurLayer(adresse_json);
+            map.fitBounds(L.featureGroup([layers.marqueur]).getBounds());
 
             loadParcelle(false, push);
 
-            layers.adresse.on('dragend', function (e) {
+            layers.marqueur.on('dragend', function (e) {
                 clearTimeout(loadParcelle_timeout);
                 loadParcelle_timeout = setTimeout(loadParcelle(true, true), 10);
             });
@@ -927,10 +913,19 @@ jQuery(document).ready(function ($) {
         var loadParcelle = function (fromDrag, push) {
 
 
-            var feature = layers.adresse.toGeoJSON();
+            var feature = layers.marqueur.toGeoJSON();
             var marker_pos = {
-                latlng: layers.adresse.getLatLng()
+                latlng: layers.marqueur.getLatLng()
             };
+
+
+            if (layers.servitudes != null) {
+                map.removeLayer(layers.servitudes);
+                layers.servitudes = null;
+            }
+            /*jQuery.each(servitude_layers, function (k, l) {
+                map.removeLayer(l);
+            })*/
 
             if (fromDrag == true) {
                 input.val(marker_pos.latlng.lat + ', ' + marker_pos.latlng.lng);
@@ -1047,10 +1042,26 @@ jQuery(document).ready(function ($) {
 
         var getServitudesDetail = function () {
 
+            var current_background = null;
+            jQuery.each(backgroundLayers, function (t, l) {
+                if (map.hasLayer(l)) current_background = t;
+            });
+
+
+
+
 
             container.find('.map[data-servitudeid]').each(function () {
+
+                if (layers.servitudes == null) {
+                    layers.servitudes = L.layerGroup();
+                    layers.servitudes.addTo(map);
+                    updateLayerController();
+                }
+
                 var map_container = jQuery(this);
                 var servitude_id = map_container.data('servitudeid');
+                var properties = map_container.data('properties');
                 var options = jQuery.extend(urbaClic_options.leaflet_map_options, {
                     zoomControl: false
                 });
@@ -1061,7 +1072,7 @@ jQuery(document).ready(function ($) {
 
                 var servitudes_map = L.map(map_container[0], options).setView([46.6795944656402, 2.197265625], 4);
                 servitudes_map.attributionControl.setPrefix('');
-                var l = urbaClicUtils.getModelLayer(urbaClic_options.background_layers[0], urbaClic_options.ign_key);
+                var l = urbaClicUtils.getModelLayer(current_background, urbaClic_options.ign_key);
                 l.layer.addTo(servitudes_map);
 
 
@@ -1103,6 +1114,24 @@ jQuery(document).ready(function ($) {
                         }
                     });
                     layer_assiette.addTo(servitudes_map);
+
+
+                    var layer_generateur2 = L.geoJson(geojson_generateur, {
+                        onEachFeature: function (feature, layer) {
+                            var html = default_template({
+                                properties: properties
+                            });
+                            layer.bindPopup(html);
+                        },
+                        style: {
+                            'className': 'generateur'
+                        }
+                    });
+
+
+
+                    // layer_generateur2.addTo(map);
+                    layers.servitudes.addLayer(layer_generateur2);
 
                 });
 
@@ -1164,7 +1193,6 @@ jQuery(document).ready(function ($) {
 
                 current_parcelle.loadings.ban_query = jQuery.getJSON(url, params, function (data) {
                     addBanLayer(data);
-                    //if (layers.ban) map.removeLayer(layers.ban);
                     if (data.features[0] != undefined) {
                         current_parcelle.data.adresse = data.features[0].properties;
                         jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));

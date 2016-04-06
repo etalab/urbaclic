@@ -131,11 +131,26 @@
   stroke-opacity: 1;
   stroke-width: 1;
 }
-.urbaclic-map path.ban {
-  fill: none;
+.urbaclic-map path.adresse {
+  fill: #fff;
+  fill-opacity: 0.01;
   stroke-opacity: 0.5;
   stroke-width: 1;
   stroke: #000;
+}
+.urbaclic-map path.assiette {
+  fill: #f00;
+  fill-opacity: 0.05;
+  stroke: #f00;
+  stroke-opacity: 0.5;
+  stroke-width: 2;
+}
+.urbaclic-map path.generateur {
+  stroke-opacity: 1;
+  stroke-width: 1;
+  fill-opacity: 0.25;
+  fill: #f00;
+  stroke: #f00;
 }
 .urbaclic-data > div > table {
   width: 100%;
@@ -176,10 +191,10 @@
 }
 .urbaclic-data .servitudes .map path.assiette {
   fill: #f00;
-  fill-opacity: 0.2;
+  fill-opacity: 0.05;
   stroke: #f00;
-  stroke-opacity: 0.75;
-  stroke-width: 0.5;
+  stroke-opacity: 0.5;
+  stroke-width: 2;
 }
 .urbaclic-data .servitudes .map path.generateur {
   stroke-opacity: 1;
