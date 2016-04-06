@@ -441,7 +441,7 @@ urbaClicUtils.urlify = function(text) {
                     }), closest = urbaClicUtils.closestF.closestLayer(map, layer.getLayers(), latlng), parcelle = closest.layer;
                     if (parcelle) {
                         layers.parcelle && map.removeLayer(layers.parcelle), layers.parcelle = parcelle, 
-                        parcelle.addTo(map), map.fitBounds(layers.parcelle.getBounds());
+                        map.fitBounds(layers.parcelle.getBounds());
                         var marker_pos = {
                             latlng: closest.latlng
                         };

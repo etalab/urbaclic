@@ -1070,7 +1070,6 @@ jQuery(document).ready(function ($) {
                     if (parcelle) {
                         if (layers.parcelle) map.removeLayer(layers.parcelle);
                         layers.parcelle = parcelle;
-                        parcelle.addTo(map);
                         map.fitBounds(layers.parcelle.getBounds());
                         var marker_pos = {
                             latlng: closest.latlng
@@ -1122,8 +1121,7 @@ jQuery(document).ready(function ($) {
                 var servitude_id = map_container.data('servitudeid');
                 var properties = map_container.data('properties');
                 var options = jQuery.extend(urbaClic_options.leaflet_map_options, {
-                    zoomControl: false,
-                    animate: true
+                    zoomControl: false
                 });
 
 

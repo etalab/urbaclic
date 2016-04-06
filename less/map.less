@@ -10,45 +10,20 @@
 
     .leaflet-marker-icon,
     .leaflet-marker-shadow {
-      -webkit-transition: margin 0.2s;
-      -moz-transition: margin 0.2s;
-      -o-transition: margin 0.2s;
       transition: margin 0.2s;
+  }
+
+  .leaflet-marker-draggable {
+      transition: top 0.2s;
   }
 
 
   .leaflet-marker-draggable:hover {
-      animation: bounce linear 1s;
-      animation-iteration-count: 1;
-      top: ;
+    top:  -10px;
   }
 
-  @keyframes bounce {
-      0% {
-        top:  0px;
-    }
-    15% {
-        top:  -12px;
-    }
-    30% {
-        top:  0px;
-    }
-    45% {
-        top:  -7px;
-    }
-    60% {
-        top:  0px;
-    }
-    75% {
-        top:  -3px;
-    }
-    100% {
-        top:  0px;
-    }
-}
 
-
-path.parcelle  {
+  path.parcelle  {
     fill-opacity: 0.2;
     stroke-opacity: 1;
     stroke-width: 1;
