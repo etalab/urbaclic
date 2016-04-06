@@ -161,22 +161,22 @@ urbaClicUtils.urlify = function(text) {
     var Templates = {}, sortDesc = !1;
     Templates.autocomplete = [ "{{#each features}}", '<li><a href="#" data-feature="{{jsonencode .}}" data-type="{{properties.type}}" tabindex="1000">', "   {{marks properties.label ../query}}", "   &nbsp;<i>{{_ properties.type}}</i>", "</a></li>", "{{/each}}" ], 
     Templates.shareLink = [ '<div class="uData-shareLink">', '<div class="linkDiv"><a href="#">intégrez cet outil de recherche sur votre site&nbsp;<i class="fa fa-share-alt"></i></a></div>', '<div class="hidden">', "   <h4>Vous pouvez intégrer cet outil de recherche de données sur votre site</h4>", "   <p>Pour ceci collez le code suivant dans le code HTML de votre page</p>", "   <pre>", "&lt;script&gt;window.jQuery || document.write(\"&lt;script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'&gt;&lt;\\/script&gt;\")&lt;/script&gt;", "", "&lt;!-- chargement feuille de style font-awesome --&gt;", '&lt;link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css"&gt;', "", '&lt;script src="{{baseUrl}}udata.js"&gt;&lt;/script&gt;', '&lt;div class="uData-data"', '   data-q="{{q}}"', '   data-organizations="{{organizationList}}"', '   data-organization="{{organization}}"', '   data-page_size="{{page_size}}"', "&gt&lt;/div&gt", "   </pre>", "   <p>vous pouvez trouver plus d'info sur cet outil et son paramétrage à cette adresse: <a href='https://github.com/DepthFrance/udata-js' target='_blank'>https://github.com/DepthFrance/udata-js</a></p>", "</div>", "</div>" ], 
-    Templates.parcelleData = [ '{{#ifCond adresse "!=" null}}', '<div class="position">', "<h4>position</h4>", "<table>", "<tr>", '<th class="position">coordonnées marqueur</th>', '<th class="adresse">Adresse estimée</th>', "</tr>", "<tr>", '<td class="position">{{latlng.lat}}, {{latlng.lng}}</td>', "{{#with adresse}}", '<td class="adresse">{{name}} {{postcode}} {{city}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond cadastre "!=" undefined}}', "{{#with cadastre}}", '<div class="cadastre">', "<h4>cadastre</h4>", "<table>", "<tr>", '<th class="parcelle_id">ID</th>', '<th class="code_dep">code_dep</th>', '<th class="code_com">code_com</th>', '<th class="nom_com">nom_com</th>', '<th class="code_arr">code_arr</th>', '<th class="com_abs">com_abs</th>', '<th class="feuille">feuille</th>', '<th class="section">section</th>', '<th class="numero">numero</th>', '<th class="surface_parcelle">surface parcelle</th>', "</tr>", "<tr>", '<td class="parcelle_id">{{../parcelle_id}}</td>', '<td class="code_dep">{{code_dep}}</td>', '<td class="code_com">{{code_com}}</td>', '<td class="nom_com">{{nom_com}}</td>', '<td class="code_arr">{{code_arr}}</td>', '<td class="com_abs">{{com_abs}}</td>', '<td class="feuille">{{feuille}}</td>', '<td class="section">{{section}}</td>', '<td class="numero">{{numero}}</td>', '<td class="surface_parcelle">{{round surface_parcelle}}m²</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond plu "!=" null}}', "{{#with plu}}", '<div class="plu">', "<h4>PLU</h4>", "<table>", "<tr>", '<th class="libelle">Libellé</th>', '<th class="txt">Texte</th>', "</tr>", "<tr>", '<td class="libelle">{{LIBELLE}}</td>', '<td class="txt">{{TXT}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond servitudes "!=" null}}', '<div class="servitudes">', "<h4>servitudes</h4>", '{{#ifCount servitudes "==" 0}}', "<ul>", "<li>aucune</li>", "</ul>", "{{else}}", "<p>La parcelle est concernée par {{count servitudes}} servitudes</p>", "<table>", "<tr>", '<th class="servitude_id">ID</th>', '<th class="name">nom</th>', '<th class="type">type</th>', '<th class="code_merimee">Code Mérimée</th>', "</tr>", "{{#each servitudes}}", "<tr>", '<td class="servitude_id"><div class="map" data-servitudeid="{{id}}"></div>{{id}}</td>', '<td class="name">{{nom}}</td>', '<td class="type">{{type}}</td>', '<td class="code_merimee"><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td>', "</tr>", "{{/each}}", "</table>", "</ul>", "{{/ifCount}}", "</div>", "{{/ifCond}}" ];
+    Templates.parcelleData = [ '{{#ifCond adresse "!=" null}}', '<div class="position">', "<h4>position</h4>", "<table>", "<tr>", '<th class="position">coordonnées marqueur</th>', '<th class="adresse">Adresse estimée</th>', "</tr>", "<tr>", '<td class="position">{{latlng.lat}}, {{latlng.lng}}</td>', "{{#with adresse}}", '<td class="adresse">{{name}} {{postcode}} {{city}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond cadastre "!=" undefined}}', "{{#with cadastre}}", '<div class="cadastre">', "<h4>cadastre</h4>", "<table>", "<tr>", '<th class="parcelle_id">ID</th>', '<th class="code_dep">code_dep</th>', '<th class="code_com">code_com</th>', '<th class="nom_com">nom_com</th>', '<th class="code_arr">code_arr</th>', '<th class="com_abs">com_abs</th>', '<th class="feuille">feuille</th>', '<th class="section">section</th>', '<th class="numero">numero</th>', '<th class="surface_parcelle">surface parcelle</th>', "</tr>", "<tr>", '<td class="parcelle_id">{{../parcelle_id}}</td>', '<td class="code_dep">{{code_dep}}</td>', '<td class="code_com">{{code_com}}</td>', '<td class="nom_com">{{nom_com}}</td>', '<td class="code_arr">{{code_arr}}</td>', '<td class="com_abs">{{com_abs}}</td>', '<td class="feuille">{{feuille}}</td>', '<td class="section">{{section}}</td>', '<td class="numero">{{numero}}</td>', '<td class="surface_parcelle">{{round surface_parcelle}}m²</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond plu "!=" null}}', "{{#with plu}}", '<div class="plu">', "<h4>PLU</h4>", "<table>", "<tr>", '<th class="libelle">Libellé</th>', '<th class="txt">Texte</th>', "</tr>", "<tr>", '<td class="libelle">{{LIBELLE}}</td>', '<td class="txt">{{TXT}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond servitudes "!=" null}}', '<div class="servitudes">', "<h4>servitudes</h4>", '{{#ifCount servitudes "==" 0}}', "<ul>", "<li>aucune</li>", "</ul>", "{{else}}", "<p>La parcelle est concernée par {{count servitudes}} servitudes</p>", "<table>", "<tr>", '<th class="servitude_id">ID</th>', '<th class="name">nom</th>', '<th class="type">type</th>', '<th class="code_merimee">Code Mérimée</th>', "</tr>", "{{#each servitudes}}", "<tr>", '<td class="servitude_id"><div class="map" data-servitudeid="{{_id}}" data-properties="{{jsonencode .}}"></div></td>', '<td class="name">{{nom}}</td>', '<td class="type">{{type}}</td>', '<td class="code_merimee"><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td>', "</tr>", "{{/each}}", "</table>", "</ul>", "{{/ifCount}}", "</div>", "{{/ifCond}}" ];
     var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
         var container = obj, cadastre_min_zoom = 17, map = null, current_citycode = null, layers = {
-            ban: null,
             adresse: null,
-            parcelle: null
+            marqueur: null,
+            parcelle: null,
+            servitudes: null
         }, backgroundLayers = {}, urbaClic_options = {
             showMap: !0,
             showData: !0,
-            sharelink: !1,
             getadresse: !0,
             getservitude: !0,
             getPlu: !0,
             sharelink: !1,
-            autocomplete_limit: 50,
+            autocomplete_limit: 20,
             leaflet_map_options: {},
             ign_key: null,
             background_layers: [ "OpenStreetMap", "MapQuest_Open", "OpenTopoMap" ]
@@ -189,14 +189,15 @@ urbaClicUtils.urlify = function(text) {
             var k = i.substring("autocomplete_".length);
             autocomplete_params[k] = urbaClic_options[i];
         }
-        var input = container.find("#urbaclic-search"), ban_options = autocomplete_params, default_template = function(feature) {
+        0 == jQuery("#urbaclic-search").length && jQuery('<div id="urbaclic-autocomplete"><input type="text" id="urbaclic-search" placeholder="adresse de la parcelle"></div>').appendTo(container);
+        var input = jQuery("#urbaclic-search"), ban_options = autocomplete_params, default_template = function(feature) {
             var html = "";
             return jQuery.each(feature.properties, function(k, v) {
                 html += "<tr><th>" + k + "</th><td>" + urbaClicUtils.urlify(v) + "</td></tr>";
             }), html = '<table class="table table-hover table-bordered">' + html + "</table>";
         }, circle_pointToLayer = function(feature, latlng) {
             var geojsonMarkerOptions = {
-                radius: 3
+                radius: 5
             };
             return L.circleMarker(latlng, geojsonMarkerOptions);
         }, updateLayerController = function() {
@@ -208,7 +209,7 @@ urbaClicUtils.urlify = function(text) {
             backgroundLayers[title] = layer, show === !0 && layer.addTo(map), updateLayerController();
         };
         var autocomplete_press = function(val) {
-            var ul = container.find("ul.urbaclic-autocomplete"), updateStyle = function() {
+            var ul = jQuery("#urbaclic-autocomplete ul"), updateStyle = function() {
                 return ul.find("a.focus").removeClass("focus"), 0 > autocomplete_pos ? autocomplete_hide() : (autocomplete_pos >= 0 && jQuery(ul.find("a")[autocomplete_pos]).addClass("focus"), 
                 void ul.animate({
                     scrollTop: jQuery(ul.find("a")[autocomplete_pos]).offset().top + ul.scrollTop() - ul.offset().top
@@ -222,16 +223,15 @@ urbaClicUtils.urlify = function(text) {
             "Up" == val && autocomplete_pos--, "Down" != val && "Up" != val || updateStyle()) : "Down" == val && (autocomplete_show(), 
             autocomplete_pos = 0, updateStyle());
         }, autocomplete_show = function() {
-            console.log("show"), autocomplete_open = !0, autocomplete_pos = -1, clearTimeout(focusOff_timeout), 
-            container.find("ul.urbaclic-autocomplete").slideDown();
+            autocomplete_open = !0, autocomplete_pos = -1, clearTimeout(focusOff_timeout), jQuery("#urbaclic-autocomplete ul").slideDown();
         }, autocomplete_hide = function() {
-            console.log("hide"), autocomplete_open = !1, autocomplete_pos = -1, container.find("ul.urbaclic-autocomplete a.focus").removeClass("focus"), 
+            autocomplete_open = !1, autocomplete_pos = -1, jQuery("#urbaclic-autocomplete ul a.focus").removeClass("focus"), 
             clearTimeout(focusOff_timeout), focusOff_timeout = setTimeout(function() {
-                container.find("ul.urbaclic-autocomplete").slideUp();
+                jQuery("#urbaclic-autocomplete ul").slideUp();
             }, 200);
         }, autocomplete = function(loadFirst) {
             autocomplete_pos = -1;
-            var ul = container.find("ul.urbaclic-autocomplete");
+            var ul = jQuery("#urbaclic-autocomplete ul");
             ban_query && ban_query.abort(), input.prop("tabindex", 1e3);
             var t = input.val();
             if (0 == t.search(/\d{1,2}(\.\d+)?,\s*\d{1,2}(\.\d+)/)) {
@@ -254,8 +254,8 @@ urbaClicUtils.urlify = function(text) {
                         type: "Feature"
                     } ]
                 };
-                return ul.html(Templates.autocomplete(data)).slideDown(), loadFirst === !0 && (console.log("loadFirst"), 
-                initMarker(container.find("ul.urbaclic-autocomplete a").first().data())), !1;
+                return ul.html(Templates.autocomplete(data)).slideDown(), loadFirst === !0 && initMarker(jQuery("#urbaclic-autocomplete ul a").first().data()), 
+                !1;
             }
             if (t.length > 1) {
                 ul.length || (ul = jQuery('<ul class="urbaclic-autocomplete"></ul>').insertAfter(input).hide(), 
@@ -263,9 +263,9 @@ urbaClicUtils.urlify = function(text) {
                 var url = BAN_API + "search/", params = ban_options;
                 params.q = t, ban_query = jQuery.getJSON(url, params, function(data) {
                     ban_query = null, data.features.length ? (ul.html(Templates.autocomplete(data)).slideDown(), 
-                    loadFirst === !0 && (console.log("loadFirst"), initMarker(container.find("ul.urbaclic-autocomplete a").first().data()))) : ul.html("").fadeOut();
+                    loadFirst === !0 && initMarker(jQuery("#urbaclic-autocomplete ul a").first().data())) : ul.html("").fadeOut();
                 });
-            } else container.find("ul.urbaclic-autocomplete").html("").slideUp();
+            } else jQuery("#urbaclic-autocomplete ul").html("").slideUp();
         }, initMap = function() {
             if (L.TileLayer.WMTS = L.TileLayer.extend({
                 defaultWmtsParams: {
@@ -323,7 +323,7 @@ urbaClicUtils.urlify = function(text) {
                 }
             }
         }, addBanLayer = function(data) {
-            layers.ban && map.removeLayer(layers.ban);
+            layers.adresse && map.removeLayer(layers.adresse);
             var layer = L.geoJson(data, {
                 onEachFeature: function(feature, layer) {
                     var html = default_template(feature);
@@ -331,19 +331,19 @@ urbaClicUtils.urlify = function(text) {
                 },
                 pointToLayer: circle_pointToLayer,
                 style: {
-                    className: "ban"
+                    className: "adresse"
                 }
             }).addTo(map);
-            return layers.ban = layer, updateLayerController(), layer;
-        }, addAdressLayer = function(data) {
-            layers.adresse && map.removeLayer(layers.adresse);
+            return layers.adresse = layer, updateLayerController(), layer;
+        }, addMarqueurLayer = function(data) {
+            layers.marqueur && map.removeLayer(layers.marqueur);
             var layer = L.marker([ data.features[0].geometry.coordinates[1], data.features[0].geometry.coordinates[0] ], {
                 style: {
                     className: "adresse"
                 },
                 draggable: !0
             }).addTo(map);
-            return layers.adresse = layer, updateLayerController(), layer;
+            return layers.marqueur = layer, updateLayerController(), layer;
         }, loadFromUrl = function() {
             var url = decodeURIComponent(document.URL).replace(/\+/g, " ");
             if (url = url.split("#"), url.length > 1) {
@@ -353,11 +353,10 @@ urbaClicUtils.urlify = function(text) {
         };
         window.addEventListener("popstate", loadFromUrl);
         var pushHistory = function() {
-            history.pushState(null, null, initial_url + "#" + encodeURIComponent(input.val().replace(/\s/g, "+"))), 
-            console.log("pushState " + input.val());
+            history.pushState(null, null, initial_url + "#" + encodeURIComponent(input.val().replace(/\s/g, "+")));
         }, initMarker = function(params, push) {
             null == map && initMap(), input.val(params.feature.properties.label), push && pushHistory(), 
-            current_citycode = params.feature.properties.citycode, layers.adresse && map.removeLayer(layers.adresse);
+            current_citycode = params.feature.properties.citycode, layers.marqueur && map.removeLayer(layers.marqueur);
             ({
                 latlng: L.latLng(params.feature.geometry.coordinates[1], params.feature.geometry.coordinates[0])
             });
@@ -366,15 +365,16 @@ urbaClicUtils.urlify = function(text) {
                 type: "FeatureCollection",
                 features: [ params.feature ]
             };
-            layers.adresse = addAdressLayer(adresse_json), map.fitBounds(L.featureGroup([ layers.adresse ]).getBounds()), 
-            loadParcelle(!1, push), layers.adresse.on("dragend", function(e) {
+            layers.marqueur = addMarqueurLayer(adresse_json), map.fitBounds(L.featureGroup([ layers.marqueur ]).getBounds()), 
+            loadParcelle(!1, push), layers.marqueur.on("dragend", function(e) {
                 clearTimeout(loadParcelle_timeout), loadParcelle_timeout = setTimeout(loadParcelle(!0, !0), 10);
             });
         }, loadParcelle = function(fromDrag, push) {
-            var feature = layers.adresse.toGeoJSON(), marker_pos = {
-                latlng: layers.adresse.getLatLng()
+            var feature = layers.marqueur.toGeoJSON(), marker_pos = {
+                latlng: layers.marqueur.getLatLng()
             };
-            if (1 == fromDrag) {
+            if (null != layers.servitudes && (map.removeLayer(layers.servitudes), layers.servitudes = null), 
+            1 == fromDrag) {
                 input.val(marker_pos.latlng.lat + ", " + marker_pos.latlng.lng);
                 ({
                     input: input.val(),
@@ -433,23 +433,57 @@ urbaClicUtils.urlify = function(text) {
                 } else console.info("aucune parcelle trouvée");
             });
         }, getServitudesDetail = function() {
-            var exemple = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[1.4412478,43.6082612],[1.4412321,43.608283],[1.4412157,43.6083198],[1.4412124,43.6083362],[1.4412129,43.6083494],[1.4412174,43.6083629],[1.4412262,43.6083779],[1.4412359,43.6083901],[1.4412502,43.6084037],[1.441268,43.6084169],[1.4412925,43.608431],[1.4413593,43.6084602],[1.4420934,43.6087783],[1.4421189,43.6087877],[1.4421488,43.6087948],[1.4421846,43.6088028],[1.4422125,43.6088065],[1.4422447,43.6088068],[1.4422806,43.6088074],[1.4423509,43.6088],[1.4423847,43.6087931],[1.4424154,43.6087853],[1.4424473,43.6087753],[1.4424598,43.6087687],[1.4424814,43.6087582],[1.4425016,43.608747],[1.4425282,43.6087283],[1.4425585,43.608706],[1.4425849,43.6086784],[1.4426028,43.6086577],[1.4426164,43.6086344],[1.4426286,43.60861],[1.4426393,43.6085774],[1.4426439,43.6085546],[1.4426422,43.6085276],[1.442637,43.6084934],[1.4426268,43.6084577],[1.4426137,43.608433],[1.4425875,43.6083981],[1.4425643,43.6083729],[1.4425318,43.6083446],[1.4424997,43.6083221],[1.4424767,43.60831],[1.4424701,43.6083065],[1.442414,43.6082802],[1.4424231,43.6082674],[1.4423022,43.6082102],[1.4422896,43.6082248],[1.4422332,43.6082],[1.4416873,43.6079607],[1.4416532,43.6079493],[1.4416239,43.6079428],[1.4415958,43.6079408],[1.4415692,43.6079431],[1.4415419,43.6079481],[1.4415214,43.6079563],[1.4414887,43.6079721],[1.4414636,43.6079894],[1.441466,43.6080011],[1.4414649,43.6080026],[1.4414508,43.6080209],[1.4414605,43.6080258],[1.4414147,43.6080792],[1.4414018,43.6080729],[1.4413164,43.6081766],[1.4413231,43.6081806],[1.4412769,43.6082392],[1.4412661,43.6082353],[1.4412478,43.6082612]]]]},"properties":{"test":"test"}}]}';
-            container.find(".map[data-servitudeid]").each(function() {
-                var map_container = jQuery(this), options = (map_container.data("servitudeid"), 
-                jQuery.extend(urbaClic_options.leaflet_map_options, {
+            var current_background = null;
+            jQuery.each(backgroundLayers, function(t, l) {
+                map.hasLayer(l) && (current_background = t);
+            }), container.find(".map[data-servitudeid]").each(function() {
+                null == layers.servitudes && (layers.servitudes = L.layerGroup(), layers.servitudes.addTo(map), 
+                updateLayerController());
+                var map_container = jQuery(this), servitude_id = map_container.data("servitudeid"), properties = map_container.data("properties"), options = jQuery.extend(urbaClic_options.leaflet_map_options, {
                     zoomControl: !1
-                })), servitudes_map = L.map(map_container[0], options).setView([ 46.6795944656402, 2.197265625 ], 4);
-                servitudes_map.attributionControl.setPrefix(""), L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(servitudes_map);
-                var data = JSON.parse(exemple), layer = L.geoJson(data, {
-                    onEachFeature: function(feature, layer) {
-                        var html = default_template(feature);
-                        layer.bindPopup(html);
-                    },
-                    style: {
-                        className: "parcelle"
-                    }
+                }), url = URBA_API + "servitudes/" + servitude_id, servitudes_map = L.map(map_container[0], options).setView([ 46.6795944656402, 2.197265625 ], 4);
+                servitudes_map.attributionControl.setPrefix("");
+                var l = urbaClicUtils.getModelLayer(current_background, urbaClic_options.ign_key);
+                l.layer.addTo(servitudes_map), jQuery.getJSON(url, function(data) {
+                    var geojson_generateur = {
+                        type: "FeatureCollection",
+                        features: [ {
+                            type: "Feature",
+                            properties: {},
+                            geometry: data.generateur
+                        } ]
+                    }, layer_generateur = L.geoJson(geojson_generateur, {
+                        style: {
+                            className: "generateur"
+                        }
+                    });
+                    layer_generateur.addTo(servitudes_map), servitudes_map.fitBounds(layer_generateur.getBounds());
+                    var geojson_assiette = {
+                        type: "FeatureCollection",
+                        features: [ {
+                            type: "Feature",
+                            properties: {},
+                            geometry: data.assiette
+                        } ]
+                    }, layer_assiette = L.geoJson(geojson_assiette, {
+                        style: {
+                            className: "assiette"
+                        }
+                    });
+                    layer_assiette.addTo(servitudes_map);
+                    var layer_generateur2 = L.geoJson(geojson_generateur, {
+                        onEachFeature: function(feature, layer) {
+                            var html = default_template({
+                                properties: properties
+                            });
+                            layer.bindPopup(html);
+                        },
+                        style: {
+                            className: "generateur"
+                        }
+                    });
+                    layers.servitudes.addLayer(layer_generateur2);
                 });
-                layer.addTo(servitudes_map), servitudes_map.fitBounds(layer.getBounds());
             });
         }, showData = function(feature, layer, evt) {
             map.fitBounds(layer.getBounds());
@@ -506,14 +540,14 @@ urbaClicUtils.urlify = function(text) {
         loadFromUrl()) : autocomplete(), input.keydown(function(e) {
             var c = e.keyCode;
             return 13 === c ? autocomplete_press("Enter") : 27 === c ? autocomplete_press("Esc") : 38 === c ? autocomplete_press("Up") : 40 === c ? autocomplete_press("Down") : void setTimeout(autocomplete, 10);
-        }).focusin(autocomplete_show).focusout(autocomplete_hide), container.on("click", "ul.urbaclic-autocomplete [data-feature]", function(e) {
+        }).focusin(autocomplete_show).focusout(autocomplete_hide), jQuery("#urbaclic-autocomplete").on("click", ".urbaclic-autocomplete [data-feature]", function(e) {
             e.preventDefault(), initMarker(jQuery(this).data(), !0);
-        }).on("mouseover", "ul.urbaclic-autocomplete", function(e) {
+        }).on("mouseover", ".urbaclic-autocomplete", function(e) {
             clearTimeout(focusOff_timeout);
-        }).on("focusin", "ul.urbaclic-autocomplete *", function(e) {
-            clearTimeout(focusOff_timeout);
-        }).on("focusout", "ul.urbaclic-autocomplete *", function(e) {
-            clearTimeout(focusOff_timeout), focusOff_timeout = setTimeout(focusOff, 200);
+        }).on("focusin", ".urbaclic-autocomplete *", function(e) {
+            autocomplete_show();
+        }).on("focusout", ".urbaclic-autocomplete *", function(e) {
+            autocomplete_hide();
         }), _urbaclic.map = map, _urbaclic.loadParcelle = loadParcelle, _urbaclic.initMarker = initMarker, 
         _urbaclic;
     };
