@@ -129,7 +129,7 @@ urbaClicUtils.urlify = function(text) {
         title: "OpenRiverboatMap",
         url: "//tilecache.openstreetmap.fr/openriverboatmap/{z}/{x}/{y}.png"
     }
-}, urbaClicUtils.IGNLayersTitles = {}, urbaClicUtils.getModelLayer = function(m, ign_key) {
+}, urbaClicUtils.getModelLayer = function(m, ign_key) {
     var title = m;
     if (bl = urbaClicUtils.baseLayers[m], bl) return {
         title: bl.title,
@@ -308,6 +308,15 @@ urbaClicUtils.urlify = function(text) {
                 }
             }), L.tileLayer.wtms = function(url, options) {
                 return new L.TileLayer.WMTS(url, options);
+            }, L.Marker.prototype.animateDragging = function() {
+                var iconMargin, shadowMargin;
+                return this.on("dragstart", function() {
+                    iconMargin || (iconMargin = parseInt(L.DomUtil.getStyle(this._icon, "marginTop")), 
+                    shadowMargin = parseInt(L.DomUtil.getStyle(this._shadow, "marginLeft"))), this._icon.style.marginTop = iconMargin - 15 + "px", 
+                    this._shadow.style.marginLeft = shadowMargin + 8 + "px";
+                }), this.on("dragend", function() {
+                    this._icon.style.marginTop = iconMargin + "px", this._shadow.style.marginLeft = shadowMargin + "px";
+                });
             }, urbaClic_options.showMap) {
                 jQuery(".urbaclic-map").length || jQuery('<div class="urbaclic-map"></div>').appendTo(container), 
                 map = L.map(jQuery(".urbaclic-map")[0], urbaClic_options.leaflet_map_options).setView([ 46.6795944656402, 2.197265625 ], 4), 
@@ -345,8 +354,9 @@ urbaClicUtils.urlify = function(text) {
                 style: {
                     className: "adresse"
                 },
+                className: "test",
                 draggable: !0
-            }).addTo(map);
+            }).animateDragging().addTo(map);
             return layers.marqueur = layer, updateLayerController(), layer;
         }, loadFromUrl = function() {
             var url = decodeURIComponent(document.URL).replace(/\+/g, " ");
@@ -467,7 +477,8 @@ urbaClicUtils.urlify = function(text) {
                     }, layer_generateur = L.geoJson(geojson_generateur, {
                         style: {
                             className: "generateur"
-                        }
+                        },
+                        clickable: !1
                     });
                     layer_generateur.addTo(servitudes_map);
                     var geojson_assiette = {
@@ -480,7 +491,8 @@ urbaClicUtils.urlify = function(text) {
                     }, layer_assiette = L.geoJson(geojson_assiette, {
                         style: {
                             className: "assiette"
-                        }
+                        },
+                        clickable: !1
                     });
                     layer_assiette.addTo(servitudes_map), servitudes_map.fitBounds(layer_assiette.getBounds());
                     var layer_generateur2 = L.geoJson(geojson_generateur, {
@@ -494,13 +506,10 @@ urbaClicUtils.urlify = function(text) {
                     });
                     layers.servitudes.addLayer(layer_generateur2);
                     var layer_assiette2 = L.geoJson(geojson_assiette, {
-                        onEachFeature: function(feature, layer) {
-                            var html = Templates.servitudePopup(properties);
-                            layer.bindPopup(html);
-                        },
                         style: {
                             className: "assiette"
-                        }
+                        },
+                        clickable: !1
                     });
                     layers.zones_servitudes.addLayer(layer_assiette2);
                 });

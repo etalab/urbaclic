@@ -208,9 +208,6 @@ urbaClicUtils.baseLayers = {
 };
 
 
-urbaClicUtils.IGNLayersTitles = {
-
-};
 
 
 urbaClicUtils.getModelLayer = function (m, ign_key) {
@@ -799,6 +796,29 @@ jQuery(document).ready(function ($) {
              *---------------------------------------------------------*/
 
 
+
+
+            L.Marker.prototype.animateDragging = function () {
+
+                var iconMargin, shadowMargin;
+
+                this.on('dragstart', function () {
+                    if (!iconMargin) {
+                        iconMargin = parseInt(L.DomUtil.getStyle(this._icon, 'marginTop'));
+                        shadowMargin = parseInt(L.DomUtil.getStyle(this._shadow, 'marginLeft'));
+                    }
+
+                    this._icon.style.marginTop = (iconMargin - 15) + 'px';
+                    this._shadow.style.marginLeft = (shadowMargin + 8) + 'px';
+                });
+
+                return this.on('dragend', function () {
+                    this._icon.style.marginTop = iconMargin + 'px';
+                    this._shadow.style.marginLeft = shadowMargin + 'px';
+                });
+            };
+
+
             if (urbaClic_options.showMap) {
                 if (!jQuery('.urbaclic-map').length) jQuery('<div class="urbaclic-map"></div>').appendTo(container);
 
@@ -866,8 +886,9 @@ jQuery(document).ready(function ($) {
                 style: {
                     'className': 'adresse'
                 },
+                className: 'test',
                 draggable: true
-            }).addTo(map);
+            }).animateDragging().addTo(map);
 
 
             layers.marqueur = layer;
@@ -1130,7 +1151,8 @@ jQuery(document).ready(function ($) {
                     var layer_generateur = L.geoJson(geojson_generateur, {
                         style: {
                             'className': 'generateur'
-                        }
+                        },
+                        clickable: false
                     });
                     layer_generateur.addTo(servitudes_map);
                     //servitudes_map.fitBounds(layer_generateur.getBounds());
@@ -1150,7 +1172,8 @@ jQuery(document).ready(function ($) {
                     var layer_assiette = L.geoJson(geojson_assiette, {
                         style: {
                             'className': 'assiette'
-                        }
+                        },
+                        clickable: false
                     });
                     layer_assiette.addTo(servitudes_map);
                     servitudes_map.fitBounds(layer_assiette.getBounds());
@@ -1173,13 +1196,10 @@ jQuery(document).ready(function ($) {
 
 
                     var layer_assiette2 = L.geoJson(geojson_assiette, {
-                        onEachFeature: function (feature, layer) {
-                            var html = Templates.servitudePopup(properties);
-                            layer.bindPopup(html);
-                        },
                         style: {
                             'className': 'assiette'
-                        }
+                        },
+                        clickable: false
                     });
 
 

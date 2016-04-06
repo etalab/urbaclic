@@ -8,64 +8,103 @@
         max-width: none !important;
     }
 
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow {
+      -webkit-transition: margin 0.2s;
+      -moz-transition: margin 0.2s;
+      -o-transition: margin 0.2s;
+      transition: margin 0.2s;
+  }
 
-    path.parcelle  {
-        fill-opacity: 0.2;
-        stroke-opacity: 1;
-        stroke-width: 1;
-        stroke-linecap: butt;
-        stroke-linejoin: miter;
+
+  .leaflet-marker-draggable:hover {
+      animation: bounce linear 1s;
+      animation-iteration-count: 1;
+      top: ;
+  }
+
+  @keyframes bounce {
+      0% {
+        top:  0px;
     }
-
-    path.adresse  {
-        fill: #fff;
-        fill-opacity: 0.01;
-        stroke-opacity: 0.5;
-        stroke-width: 1;
-        stroke: #000;
+    15% {
+        top:  -12px;
     }
-
-    path.assiette  {
-        fill: #f00;
-        fill-opacity: 0.001;
-        stroke: #000;
-        stroke-dasharray: 5, 5;
-        stroke-linecap: butt;
-        stroke-linejoin: miter;
-        stroke-opacity: 1;
-        stroke-width: 1;
+    30% {
+        top:  0px;
     }
-
-
-    path.generateur  {
-        stroke-opacity: 1;
-        stroke-width: 1;
-        fill-opacity:0.25;
-        fill : #f00;
-        stroke : #f00;
-        stroke-linecap: butt;
-        stroke-linejoin: miter;
+    45% {
+        top:  -7px;
     }
+    60% {
+        top:  0px;
+    }
+    75% {
+        top:  -3px;
+    }
+    100% {
+        top:  0px;
+    }
+}
 
 
-    .leaflet-popup-content {
-        h4 {
-            text-transform: center;
-        }
-        table{
-            width: 100%;
-            border-collapse: collapse;
-            border-spacing: 0;
-            th {
-              font-weight: bold;
-          }
-          th,td {
-              padding: 5px;
-              text-align: center;
-              border: 1px solid #ddd;
-          }
+path.parcelle  {
+    fill-opacity: 0.2;
+    stroke-opacity: 1;
+    stroke-width: 1;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+}
+
+path.adresse  {
+    fill: #fff;
+    fill-opacity: 0.01;
+    stroke-opacity: 0.5;
+    stroke-width: 1;
+    stroke: #000;
+}
+
+path.assiette  {
+    fill: #f00;
+    fill-opacity: 0.001;
+    stroke: #000;
+    stroke-dasharray: 5, 5;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    stroke-opacity: 1;
+    stroke-width: 1;
+}
+
+
+path.generateur  {
+    stroke-opacity: 1;
+    stroke-width: 1;
+    fill-opacity:0.25;
+    fill : #f00;
+    stroke : #f00;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+}
+
+
+.leaflet-popup-content {
+    h4 {
+        text-transform: center;
+    }
+    table{
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        th {
+          font-weight: bold;
+      }
+      th,td {
+          padding: 5px;
+          text-align: center;
+          border: 1px solid #ddd;
       }
   }
+}
 
 }
 
