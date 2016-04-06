@@ -164,12 +164,13 @@ urbaClicUtils.urlify = function(text) {
     Templates.parcelleData = [ '{{#ifCond adresse "!=" null}}', '<div class="position">', "<h4>position</h4>", "<table>", "<tr>", '<th class="position">coordonnées marqueur</th>', '<th class="adresse">Adresse estimée</th>', "</tr>", "<tr>", '<td class="position">{{latlng.lat}}, {{latlng.lng}}</td>', "{{#with adresse}}", '<td class="adresse">{{name}} {{postcode}} {{city}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond cadastre "!=" undefined}}', "{{#with cadastre}}", '<div class="cadastre">', "<h4>cadastre</h4>", "<table>", "<tr>", '<th class="parcelle_id">ID</th>', '<th class="code_dep">code_dep</th>', '<th class="code_com">code_com</th>', '<th class="nom_com">nom_com</th>', '<th class="code_arr">code_arr</th>', '<th class="com_abs">com_abs</th>', '<th class="feuille">feuille</th>', '<th class="section">section</th>', '<th class="numero">numero</th>', '<th class="surface_parcelle">surface parcelle</th>', "</tr>", "<tr>", '<td class="parcelle_id">{{../parcelle_id}}</td>', '<td class="code_dep">{{code_dep}}</td>', '<td class="code_com">{{code_com}}</td>', '<td class="nom_com">{{nom_com}}</td>', '<td class="code_arr">{{code_arr}}</td>', '<td class="com_abs">{{com_abs}}</td>', '<td class="feuille">{{feuille}}</td>', '<td class="section">{{section}}</td>', '<td class="numero">{{numero}}</td>', '<td class="surface_parcelle">{{round surface_parcelle}}m²</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond plu "!=" null}}', "{{#with plu}}", '<div class="plu">', "<h4>PLU</h4>", "<table>", "<tr>", '<th class="libelle">Libellé</th>', '<th class="txt">Texte</th>', "</tr>", "<tr>", '<td class="libelle">{{LIBELLE}}</td>', '<td class="txt">{{TXT}}</td>', "</tr>", "</table>", "</div>", "{{/with}}", "{{/ifCond}}", '{{#ifCond servitudes "!=" null}}', '<div class="servitudes">', "<h4>servitudes</h4>", '{{#ifCount servitudes "==" 0}}', "<ul>", "<li>aucune</li>", "</ul>", "{{else}}", "<p>La parcelle est concernée par {{count servitudes}} servitudes</p>", "<table>", "<tr>", '<th class="servitude_id">ID</th>', '<th class="name">nom</th>', '<th class="type">type</th>', '<th class="code_merimee">Code Mérimée</th>', "</tr>", "{{#each servitudes}}", "<tr>", '<td class="servitude_id"><div class="map" data-servitudeid="{{_id}}" data-properties="{{jsonencode .}}"></div></td>', '<td class="name">{{nom}}</td>', '<td class="type">{{type}}</td>', '<td class="code_merimee"><a target=_blank href="http://www.culture.gouv.fr/public/mistral/mersri_fr?ACTION=CHERCHER&FIELD_1=REF&VALUE_1={{codeMerimee}}">{{codeMerimee}}</a></td>', "</tr>", "{{/each}}", "</table>", "</ul>", "{{/ifCount}}", "</div>", "{{/ifCond}}" ];
     var baseUrl = jQuery('script[src$="/main.js"]')[0].src.replace("/main.js", "/../dist/"), _urbaclic = {};
     urbaClic = function(obj, options) {
-        var container = obj, cadastre_min_zoom = 17, map = null, current_citycode = null, layers = {
+        var container = obj, map = null, current_citycode = null, layers = {
             adresse: null,
             marqueur: null,
             parcelle: null,
-            servitudes: null
-        }, backgroundLayers = {}, urbaClic_options = {
+            servitudes: null,
+            zones_servitudes: null
+        }, modelLayerKey = [], backgroundLayers = {}, urbaClic_options = {
             showMap: !0,
             showData: !0,
             getadresse: !0,
@@ -313,8 +314,8 @@ urbaClicUtils.urlify = function(text) {
                     var bl = urbaClic_options.background_layers[i];
                     if ("string" == typeof bl) {
                         var l = urbaClicUtils.getModelLayer(bl, urbaClic_options.ign_key);
-                        if (l) _urbaclic.addBackground(l.title, l.layer, 0 == i), first && (l.layer.addTo(map), 
-                        first = !1); else try {
+                        if (modelLayerKey[l.title] = bl, l) _urbaclic.addBackground(l.title, l.layer, 0 == i), 
+                        first && (l.layer.addTo(map), first = !1); else try {
                             bl = eval(bl);
                         } catch (err) {
                             console.log(err.message);
@@ -374,6 +375,7 @@ urbaClicUtils.urlify = function(text) {
                 latlng: layers.marqueur.getLatLng()
             };
             if (null != layers.servitudes && (map.removeLayer(layers.servitudes), layers.servitudes = null), 
+            null != layers.zones_servitudes && (map.removeLayer(layers.zones_servitudes), layers.zones_servitudes = null), 
             1 == fromDrag) {
                 input.val(marker_pos.latlng.lat + ", " + marker_pos.latlng.lng);
                 ({
@@ -434,10 +436,15 @@ urbaClicUtils.urlify = function(text) {
             });
         }, getServitudesDetail = function() {
             var current_background = null;
-            jQuery.each(backgroundLayers, function(t, l) {
+            if (jQuery.each(backgroundLayers, function(t, l) {
                 map.hasLayer(l) && (current_background = t);
-            }), container.find(".map[data-servitudeid]").each(function() {
+            }), null == current_background) {
+                var l = urbaClicUtils.getModelLayer(urbaClic_options.background_layers[0], urbaClic_options.ign_key);
+                current_background = l.title;
+            }
+            current_background = modelLayerKey[current_background], container.find(".map[data-servitudeid]").each(function() {
                 null == layers.servitudes && (layers.servitudes = L.layerGroup(), layers.servitudes.addTo(map), 
+                updateLayerController()), null == layers.zones_servitudes && (layers.zones_servitudes = L.layerGroup(), 
                 updateLayerController());
                 var map_container = jQuery(this), servitude_id = map_container.data("servitudeid"), properties = map_container.data("properties"), options = jQuery.extend(urbaClic_options.leaflet_map_options, {
                     zoomControl: !1
@@ -457,7 +464,7 @@ urbaClicUtils.urlify = function(text) {
                             className: "generateur"
                         }
                     });
-                    layer_generateur.addTo(servitudes_map), servitudes_map.fitBounds(layer_generateur.getBounds());
+                    layer_generateur.addTo(servitudes_map);
                     var geojson_assiette = {
                         type: "FeatureCollection",
                         features: [ {
@@ -470,7 +477,7 @@ urbaClicUtils.urlify = function(text) {
                             className: "assiette"
                         }
                     });
-                    layer_assiette.addTo(servitudes_map);
+                    layer_assiette.addTo(servitudes_map), servitudes_map.fitBounds(layer_assiette.getBounds());
                     var layer_generateur2 = L.geoJson(geojson_generateur, {
                         onEachFeature: function(feature, layer) {
                             var html = default_template({
@@ -483,6 +490,18 @@ urbaClicUtils.urlify = function(text) {
                         }
                     });
                     layers.servitudes.addLayer(layer_generateur2);
+                    var layer_assiette2 = L.geoJson(geojson_assiette, {
+                        onEachFeature: function(feature, layer) {
+                            var html = default_template({
+                                properties: properties
+                            });
+                            layer.bindPopup(html);
+                        },
+                        style: {
+                            className: "assiette"
+                        }
+                    });
+                    layers.zones_servitudes.addLayer(layer_assiette2);
                 });
             });
         }, showData = function(feature, layer, evt) {

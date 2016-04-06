@@ -140,7 +140,7 @@
 }
 .urbaclic-map path.assiette {
   fill: #f00;
-  fill-opacity: 0.05;
+  fill-opacity: 0.001;
   stroke: #f00;
   stroke-opacity: 0.5;
   stroke-width: 2;

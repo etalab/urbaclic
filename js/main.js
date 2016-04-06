@@ -441,8 +441,6 @@ jQuery(document).ready(function ($) {
     urbaClic = function (obj, options) {
         var container = obj;
 
-        var cadastre_min_zoom = 17;
-
         var map = null;
 
         var current_citycode = null;
@@ -452,9 +450,10 @@ jQuery(document).ready(function ($) {
             marqueur: null,
             parcelle: null,
             servitudes: null,
+            zones_servitudes: null,
         }
 
-        //var servitude_layers = [];
+        var modelLayerKey = [];
 
 
 
@@ -788,9 +787,9 @@ jQuery(document).ready(function ($) {
 
                     if (typeof bl == 'string') {
                         var l = urbaClicUtils.getModelLayer(bl, urbaClic_options.ign_key);
+                        modelLayerKey[l.title] = bl;
 
                         if (l) {
-
                             _urbaclic.addBackground(l.title, l.layer, i == 0);
                             if (first) {
                                 l.layer.addTo(map);
@@ -923,9 +922,11 @@ jQuery(document).ready(function ($) {
                 map.removeLayer(layers.servitudes);
                 layers.servitudes = null;
             }
-            /*jQuery.each(servitude_layers, function (k, l) {
-                map.removeLayer(l);
-            })*/
+
+            if (layers.zones_servitudes != null) {
+                map.removeLayer(layers.zones_servitudes);
+                layers.zones_servitudes = null;
+            }
 
             if (fromDrag == true) {
                 input.val(marker_pos.latlng.lat + ', ' + marker_pos.latlng.lng);
@@ -1047,6 +1048,11 @@ jQuery(document).ready(function ($) {
                 if (map.hasLayer(l)) current_background = t;
             });
 
+            if (null == current_background) {
+                var l = urbaClicUtils.getModelLayer(urbaClic_options.background_layers[0], urbaClic_options.ign_key);
+                current_background = l.title;
+            }
+            current_background = modelLayerKey[current_background];
 
 
 
@@ -1056,6 +1062,12 @@ jQuery(document).ready(function ($) {
                 if (layers.servitudes == null) {
                     layers.servitudes = L.layerGroup();
                     layers.servitudes.addTo(map);
+                    updateLayerController();
+                }
+
+                if (layers.zones_servitudes == null) {
+                    layers.zones_servitudes = L.layerGroup();
+                    //layers.zones_servitudes.addTo(map);
                     updateLayerController();
                 }
 
@@ -1072,6 +1084,7 @@ jQuery(document).ready(function ($) {
 
                 var servitudes_map = L.map(map_container[0], options).setView([46.6795944656402, 2.197265625], 4);
                 servitudes_map.attributionControl.setPrefix('');
+
                 var l = urbaClicUtils.getModelLayer(current_background, urbaClic_options.ign_key);
                 l.layer.addTo(servitudes_map);
 
@@ -1094,7 +1107,7 @@ jQuery(document).ready(function ($) {
                         }
                     });
                     layer_generateur.addTo(servitudes_map);
-                    servitudes_map.fitBounds(layer_generateur.getBounds());
+                    //servitudes_map.fitBounds(layer_generateur.getBounds());
 
 
 
@@ -1114,6 +1127,9 @@ jQuery(document).ready(function ($) {
                         }
                     });
                     layer_assiette.addTo(servitudes_map);
+                    servitudes_map.fitBounds(layer_assiette.getBounds());
+
+
 
 
                     var layer_generateur2 = L.geoJson(geojson_generateur, {
@@ -1129,9 +1145,23 @@ jQuery(document).ready(function ($) {
                     });
 
 
-
-                    // layer_generateur2.addTo(map);
                     layers.servitudes.addLayer(layer_generateur2);
+
+
+                    var layer_assiette2 = L.geoJson(geojson_assiette, {
+                        onEachFeature: function (feature, layer) {
+                            var html = default_template({
+                                properties: properties
+                            });
+                            layer.bindPopup(html);
+                        },
+                        style: {
+                            'className': 'assiette'
+                        }
+                    });
+
+
+                    layers.zones_servitudes.addLayer(layer_assiette2);
 
                 });
 
@@ -1154,10 +1184,6 @@ jQuery(document).ready(function ($) {
             } else {
                 parcelleId.push(feature.properties.com_abs);
             }
-
-            /* for (var i in layer._layers) {
-                layer._layers[i]._container.setAttribute('class', 'active');
-            }*/
 
 
             parcelleId.push(feature.properties.section);
