@@ -1122,7 +1122,8 @@ jQuery(document).ready(function ($) {
                 var servitude_id = map_container.data('servitudeid');
                 var properties = map_container.data('properties');
                 var options = jQuery.extend(urbaClic_options.leaflet_map_options, {
-                    zoomControl: false
+                    zoomControl: false,
+                    animate: true
                 });
 
 
