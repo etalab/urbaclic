@@ -208,11 +208,6 @@ urbaClicUtils.baseLayers = {
 };
 
 
-urbaClicUtils.IGNLayersTitles = {
-
-};
-
-
 urbaClicUtils.getModelLayer = function (m, ign_key) {
     var title = m;
 
