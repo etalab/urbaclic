@@ -460,17 +460,22 @@ jQuery(document).ready(function ($) {
         var backgroundLayers = {};
 
         var urbaClic_options = {
-            showMap: true,
-            showData: true,
-            getadresse: true,
-            getservitude: true,
-            getPlu: true,
+            show_map: true,
+            show_data: true,
+            get_adresse: true,
+            get_servitude: true,
+            get_plu: true,
             sharelink: false,
             autocomplete_limit: 20,
             leaflet_map_options: {},
             ign_key: null,
-            background_layers: ['OpenStreetMap', 'MapQuest_Open', 'OpenTopoMap']
+            background_layers: ['OpenStreetMap', 'MapQuest_Open', 'OpenTopoMap'],
+            ban_api: 'https://api-adresse.data.gouv.fr/',
+            urba_api: 'https://urbanisme.api.gouv.fr/',
+            cadastre_api: 'https://apicarto.sgmap.fr/',
         };
+
+
 
         var ban_query = null;
         var cadastre_query = null;
@@ -486,6 +491,11 @@ jQuery(document).ready(function ($) {
         };
 
         urbaClic_options = jQuery.extend(urbaClic_options, options);
+        console.log(urbaClic_options);
+
+        var BAN_API = urbaClic_options.ban_api;
+        var URBA_API = urbaClic_options.urba_api;
+        var Cadastre_API = urbaClic_options.cadastre_api;;
 
 
         var autocomplete_params = {};
@@ -773,7 +783,7 @@ jQuery(document).ready(function ($) {
              *---------------------------------------------------------*/
 
 
-            if (urbaClic_options.showMap) {
+            if (urbaClic_options.show_map) {
                 if (!jQuery('.urbaclic-map').length) jQuery('<div class="urbaclic-map"></div>').appendTo(container);
 
                 map = L.map(jQuery('.urbaclic-map')[0], urbaClic_options.leaflet_map_options).setView([46.6795944656402, 2.197265625], 4);
@@ -1191,7 +1201,7 @@ jQuery(document).ready(function ($) {
 
             parcelleId = parcelleId.join('');
 
-            if (urbaClic_options.showData) {
+            if (urbaClic_options.show_data) {
                 if (!jQuery('.urbaclic-data').length) jQuery('<div class="urbaclic-data"></div>').appendTo(container);
             }
             current_parcelle.data = {
@@ -1210,7 +1220,7 @@ jQuery(document).ready(function ($) {
             jQuery('.urbaclic-data').html(Templates.parcelleData(current_parcelle.data));
 
             //load adresse
-            if (urbaClic_options.getadresse) {
+            if (urbaClic_options.get_adresse) {
                 var url = BAN_API + 'reverse/';
                 var params = {
                     lon: current_parcelle.data.latlng.lng,
@@ -1227,7 +1237,7 @@ jQuery(document).ready(function ($) {
             }
 
             //load_servitudes
-            if (urbaClic_options.getservitude) {
+            if (urbaClic_options.get_servitude) {
 
                 var geom = layer.toGeoJSON();
                 geom = geom.geometry;
@@ -1255,7 +1265,7 @@ jQuery(document).ready(function ($) {
             }
 
             //load_plu
-            if (urbaClic_options.getPlu) {
+            if (urbaClic_options.get_plu) {
                 //****************************************************************************************
 
                 /* var geom = layer.toGeoJSON();
@@ -1346,11 +1356,8 @@ jQuery(document).ready(function ($) {
 
 
 
+    //var BAN_API, URBA_API, Cadastre_API;
 
-
-    var BAN_API = "https://api-adresse.data.gouv.fr/";
-    var URBA_API = "https://urbanisme.api.gouv.fr/";
-    var Cadastre_API = "https://apicarto.sgmap.fr/";
 
 
 
