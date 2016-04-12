@@ -1108,10 +1108,11 @@ jQuery(document).ready(function ($) {
                     var layer_generateur = L.geoJson(geojson_generateur, {
                         style: {
                             'className': 'generateur'
-                        }
+                        },
+                        clickable: false
                     });
                     layer_generateur.addTo(servitudes_map);
-                    //servitudes_map.fitBounds(layer_generateur.getBounds());
+                    servitudes_map.fitBounds(layer_generateur.getBounds());
 
 
 
@@ -1128,10 +1129,11 @@ jQuery(document).ready(function ($) {
                     var layer_assiette = L.geoJson(geojson_assiette, {
                         style: {
                             'className': 'assiette'
-                        }
+                        },
+                        clickable: false
                     });
                     layer_assiette.addTo(servitudes_map);
-                    servitudes_map.fitBounds(layer_assiette.getBounds());
+                    //servitudes_map.fitBounds(layer_assiette.getBounds());
 
 
 
@@ -1161,7 +1163,8 @@ jQuery(document).ready(function ($) {
                         },
                         style: {
                             'className': 'assiette'
-                        }
+                        },
+                        clickable: false
                     });
 
 

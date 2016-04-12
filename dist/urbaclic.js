@@ -465,9 +465,10 @@ urbaClicUtils.urlify = function(text) {
                     }, layer_generateur = L.geoJson(geojson_generateur, {
                         style: {
                             className: "generateur"
-                        }
+                        },
+                        clickable: !1
                     });
-                    layer_generateur.addTo(servitudes_map);
+                    layer_generateur.addTo(servitudes_map), servitudes_map.fitBounds(layer_generateur.getBounds());
                     var geojson_assiette = {
                         type: "FeatureCollection",
                         features: [ {
@@ -478,9 +479,10 @@ urbaClicUtils.urlify = function(text) {
                     }, layer_assiette = L.geoJson(geojson_assiette, {
                         style: {
                             className: "assiette"
-                        }
+                        },
+                        clickable: !1
                     });
-                    layer_assiette.addTo(servitudes_map), servitudes_map.fitBounds(layer_assiette.getBounds());
+                    layer_assiette.addTo(servitudes_map);
                     var layer_generateur2 = L.geoJson(geojson_generateur, {
                         onEachFeature: function(feature, layer) {
                             var html = default_template({
@@ -502,7 +504,8 @@ urbaClicUtils.urlify = function(text) {
                         },
                         style: {
                             className: "assiette"
-                        }
+                        },
+                        clickable: !1
                     });
                     layers.zones_servitudes.addLayer(layer_assiette2);
                 });
