@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>UrbClic exemple</title>
+    <link type="text/css" href="./exemple.css" rel="stylesheet">
+</head>
+<body>
+
+    <script>window.jQuery || document.write("<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js'><\/script>")</script>
+
+    <script src="../js/main.js"></script>
+
+    <div id="urbaclic"
+    data-IGN_key='ti8jz2bx06cgz7vzwob03p6i'
+    data-background_layers= '["IGN:CADASTRALPARCELS.PARCELS","IGN:ORTHOIMAGERY.ORTHOPHOTOS","OSM-Fr","Toner","MapQuest_Open","OSM-monochrome"]'
+    data-urba_api='https://urbanisme.api.gouv.fr/'>
+    <label for="urbaclic-search">Localisez votre projet</label>
+    <div id="urbaclic-autocomplete">
+        <input type="text" id="urbaclic-search"
+        placeholder="adresse de la parcelle"
+        />
+    </div>
+
+    <div class='urbaclic-map'></div>
+    <div class='urbaclic-data'></div>
+</div>
+
+
+</body>
+</html>
